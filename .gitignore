@@ -1,0 +1,19 @@
+# Build artifacts
+Debug/
+Release/
+x64/
+*.obj
+*.pdb
+*.ipch
+*.tlog
+
+# Visual Studio user-specific files
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Auto-generated
+/.vs/
+*.VC.db
+*.VC.opendb
