@@ -9,9 +9,9 @@
 #define new DEBUG_NEW
 #endif
 
-IMPLEMENT_DYNCREATE(CMandelbrotView, CScrollView)
+IMPLEMENT_DYNCREATE(CMandelbrotView, CView)
 
-BEGIN_MESSAGE_MAP(CMandelbrotView, CScrollView)
+BEGIN_MESSAGE_MAP(CMandelbrotView, CView)
     ON_WM_ERASEBKGND()
     ON_WM_LBUTTONDOWN()
     ON_WM_LBUTTONUP()
@@ -26,7 +26,7 @@ CMandelbrotView::CMandelbrotView() noexcept
 
 void CMandelbrotView::OnInitialUpdate()
 {
-    CScrollView::OnInitialUpdate();
+    CView::OnInitialUpdate();
 
     CMandelbrotDoc* pDoc = GetDocument();
     ASSERT_VALID(pDoc);
@@ -37,7 +37,6 @@ void CMandelbrotView::OnInitialUpdate()
 
     // Set scroll sizes to size of bitmap
     CSize bmSize(g_state.width, g_state.height);
-    SetScrollSizes(MM_TEXT, bmSize);
 
     // --- Clamp client area to bitmap dimensions ---
     CFrameWnd* pFrame = GetParentFrame();
@@ -164,12 +163,12 @@ BOOL CMandelbrotView::OnMouseWheel(UINT nFlags, short zDelta, CPoint pt)
 #ifdef _DEBUG
 void CMandelbrotView::AssertValid() const
 {
-    CScrollView::AssertValid();
+    CView::AssertValid();
 }
 
 void CMandelbrotView::Dump(CDumpContext& dc) const
 {
-    CScrollView::Dump(dc);
+    CView::Dump(dc);
 }
 
 CMandelbrotDoc* CMandelbrotView::GetDocument() const

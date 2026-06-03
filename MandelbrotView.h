@@ -1,6 +1,6 @@
 #pragma once
 
-class CMandelbrotView : public CScrollView
+class CMandelbrotView : public CView
 {
 protected:
     CMandelbrotView() noexcept;
