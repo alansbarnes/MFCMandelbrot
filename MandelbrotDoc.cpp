@@ -12,6 +12,8 @@ IMPLEMENT_DYNCREATE(CMandelbrotDoc, CDocument)
 BEGIN_MESSAGE_MAP(CMandelbrotDoc, CDocument)
 END_MESSAGE_MAP()
 
+constexpr double initialHeight = 4.0;
+
 CMandelbrotDoc::CMandelbrotDoc() noexcept
     : m_bitmap()
     , m_pBits(nullptr)

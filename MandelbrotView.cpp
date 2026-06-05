@@ -5,6 +5,9 @@
 #include "MandelbrotDoc.h"
 #include "MandelbrotView.h"
 
+#include <format>
+#include <string>
+
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
@@ -85,6 +88,19 @@ void CMandelbrotView::OnDraw(CDC* pDC)
         rc.NormalizeRect();
         pDC->DrawFocusRect(rc);
     }
+
+    constexpr int D = std::numeric_limits<double>::max_digits10;
+    std::string info =
+        "Center: " + std::format("{:.{}g}", g_state.centerX, D) +
+        " + " + std::format("{:.{}g}", g_state.centerY, D) + "i" +
+        "  Height: " + std::format("{:.{}g}", g_state.scale * g_state.height, D) + "i" +
+        "  Iter: " + std::to_string(g_state.maxIter);
+
+    SetTextColor(*pDC, RGB(255, 255, 255));
+    SetBkMode(*pDC, TRANSPARENT);
+    RECT r = { 8, 8, g_state.width - 8, 40 };
+    DrawTextA(*pDC, info.c_str(), static_cast<int>(info.size()), &r, DT_LEFT | DT_SINGLELINE | DT_NOPREFIX);
+
 }
 
 BOOL CMandelbrotView::OnEraseBkgnd(CDC* pDC)
