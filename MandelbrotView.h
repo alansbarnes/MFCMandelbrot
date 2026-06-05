@@ -25,9 +25,6 @@ protected:
     afx_msg void OnMouseMove(UINT nFlags, CPoint pt);
     afx_msg BOOL OnMouseWheel(UINT nFlags, short zDelta, CPoint pt);
     afx_msg void OnSize(UINT nType, int cx, int cy);
-#ifdef WM_DPICHANGED
-    afx_msg void OnDpiChanged(UINT nDpiX, UINT nDpiY, LPRECT pRect);
-#endif
 
     DECLARE_MESSAGE_MAP()
 

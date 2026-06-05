@@ -13,7 +13,6 @@ public:
     CBitmap* GetBitmap();
 
 private:
-    //CBitmap m_bitmap;
     bool m_hasBitmap = false;
 
 public:
@@ -33,7 +32,7 @@ public:
     virtual void Serialize(CArchive& ar) override;
 
     void ResizeBitmap(int width, int height);
-    void ResizeBitmapForDisplay(HWND hWnd, int clientWidth = 0, int clientHeight = 0);
+    void ResizeBitmapForDisplay(HWND hWnd, int clientWidth, int clientHeight);
     void RenderMandelbrot();
 
     DECLARE_MESSAGE_MAP()

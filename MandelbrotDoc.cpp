@@ -2,7 +2,7 @@
 #include "framework.h"
 #include "MFCMandelbrot.h"
 #include "MandelbrotDoc.h"
-#include <algorithm>
+
 #include <cmath>
 
 #ifdef _DEBUG
@@ -14,57 +14,16 @@ IMPLEMENT_DYNCREATE(CMandelbrotDoc, CDocument)
 BEGIN_MESSAGE_MAP(CMandelbrotDoc, CDocument)
 END_MESSAGE_MAP()
 
-constexpr double kTargetHeightInches = 4.0;
-constexpr double kDefaultAspectRatio = 4.0 / 3.0;
-
-namespace
-{
-    UINT GetDpiYForWindowOrScreen(HWND hWnd)
-    {
-        using GetDpiForWindowFn = UINT(WINAPI*)(HWND);
-        static GetDpiForWindowFn getDpiForWindowFn = []()
-        {
-            HMODULE user32 = ::GetModuleHandleW(L"user32.dll");
-            if (!user32)
-                return static_cast<GetDpiForWindowFn>(nullptr);
-
-            return reinterpret_cast<GetDpiForWindowFn>(::GetProcAddress(user32, "GetDpiForWindow"));
-        }();
-
-        if (getDpiForWindowFn && hWnd)
-        {
-            UINT dpi = getDpiForWindowFn(hWnd);
-            if (dpi > 0)
-                return dpi;
-        }
-
-        HWND dpiHwnd = hWnd;
-        HDC hdc = ::GetDC(dpiHwnd);
-        if (!hdc)
-        {
-            dpiHwnd = nullptr;
-            hdc = ::GetDC(nullptr);
-        }
-
-        int dpiY = hdc ? ::GetDeviceCaps(hdc, LOGPIXELSY) : 96;
-
-        if (hdc)
-        {
-            ::ReleaseDC(dpiHwnd, hdc);
-        }
-
-        return (dpiY > 0) ? static_cast<UINT>(dpiY) : 96U;
-    }
-}
+constexpr double initialHeight = 4.0;
 
 CMandelbrotDoc::CMandelbrotDoc() noexcept
     : m_bitmap()
     , m_pBits(nullptr)
-    , m_width(0)
-    , m_height(0)
+    , m_width(1)
+    , m_height(1)
     , m_centerX(-0.75)
     , m_centerY(0.0)
-    , m_scale(3.0)
+    , m_scale(initialHeight)
     , m_maxIter(50)
 {
 }
@@ -74,8 +33,7 @@ BOOL CMandelbrotDoc::OnNewDocument()
     if (!CDocument::OnNewDocument())
         return FALSE;
 
-    ResizeBitmapForDisplay(nullptr);
-    RenderMandelbrot();
+    // Initial bitmap will be sized by view in OnInitialUpdate
     return TRUE;
 }
 
@@ -88,24 +46,9 @@ void CMandelbrotDoc::Serialize(CArchive& ar)
     else
     {
         ar >> m_centerX >> m_centerY >> m_scale >> m_maxIter;
-        ResizeBitmapForDisplay(nullptr, m_width, m_height);
+        // Bitmap will be resized by view based on display geometry
         RenderMandelbrot();
     }
-}
-
-void CMandelbrotDoc::ResizeBitmapForDisplay(HWND hWnd, int clientWidth, int clientHeight)
-{
-    const UINT dpiY = GetDpiYForWindowOrScreen(hWnd);
-    const int heightPx = static_cast<int>(std::lround(kTargetHeightInches * static_cast<double>(dpiY)));
-
-    double aspect = kDefaultAspectRatio;
-    if (clientWidth > 0 && clientHeight > 0)
-        aspect = static_cast<double>(clientWidth) / clientHeight;
-    else if (m_width > 0 && m_height > 0)
-        aspect = static_cast<double>(m_width) / m_height;
-
-    const int widthPx = static_cast<int>(std::lround(heightPx * aspect));
-    ResizeBitmap(std::max(1, widthPx), std::max(1, heightPx));
 }
 
 void CMandelbrotDoc::ResizeBitmap(int width, int height)
@@ -113,19 +56,21 @@ void CMandelbrotDoc::ResizeBitmap(int width, int height)
     if (width <= 0 || height <= 0)
         return;
 
+    // Reset bitmap state before allocation
+    if (m_bitmap.GetSafeHandle())
+    {
+        m_bitmap.DeleteObject();
+        m_pBits = nullptr;
+    }
+    m_hasBitmap = false;
+
     m_width = width;
     m_height = height;
-
-    if (m_bitmap.GetSafeHandle())
-        m_bitmap.DeleteObject();
-
-    m_hasBitmap = false;
-    m_pBits = nullptr;
 
     BITMAPINFO bmi = {};
     bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
     bmi.bmiHeader.biWidth = m_width;
-    bmi.bmiHeader.biHeight = -m_height;
+    bmi.bmiHeader.biHeight = -m_height;  // Top-down DIB
     bmi.bmiHeader.biPlanes = 1;
     bmi.bmiHeader.biBitCount = 24;
     bmi.bmiHeader.biCompression = BI_RGB;
@@ -135,16 +80,62 @@ void CMandelbrotDoc::ResizeBitmap(int width, int height)
     HBITMAP hBmp = ::CreateDIBSection(hdc, &bmi, DIB_RGB_COLORS, &pBits, nullptr, 0);
     ::ReleaseDC(nullptr, hdc);
 
-    if (hBmp && pBits)
+    if (!hBmp)
     {
-        m_pBits = static_cast<BYTE*>(pBits);
-        m_bitmap.Attach(hBmp);
-        m_hasBitmap = true;
+        // Allocation failed; ensure cleanup
+        m_pBits = nullptr;
+        m_hasBitmap = false;
+        return;
     }
-    else if (hBmp)
+
+    m_pBits = static_cast<BYTE*>(pBits);
+    m_bitmap.Attach(hBmp);
+    m_hasBitmap = true;
+}
+
+void CMandelbrotDoc::ResizeBitmapForDisplay(HWND hWnd, int clientWidth, int clientHeight)
+{
+    if (clientWidth <= 0 || clientHeight <= 0)
+        return;
+
+    // Get DPI for the window
+    UINT dpiY = 96;  // Default fallback
+
+    // Try GetDpiForWindow if available (Windows 10+)
+    typedef UINT(WINAPI* GetDpiForWindowPtr)(HWND);
+    HMODULE hUser32 = ::GetModuleHandleA("user32.dll");
+    if (hUser32)
     {
-        ::DeleteObject(hBmp);
+        GetDpiForWindowPtr pGetDpiForWindow = reinterpret_cast<GetDpiForWindowPtr>(
+            ::GetProcAddress(hUser32, "GetDpiForWindow"));
+        if (pGetDpiForWindow)
+        {
+            dpiY = pGetDpiForWindow(hWnd);
+        }
+        else
+        {
+            // Fallback to GetDeviceCaps with LOGPIXELSY
+            HDC hdc = ::GetDC(hWnd);
+            if (hdc)
+            {
+                dpiY = ::GetDeviceCaps(hdc, LOGPIXELSY);
+                ::ReleaseDC(hWnd, hdc);
+            }
+        }
     }
+
+    // Compute height in pixels to maintain 4-inch physical height
+    const int heightPx = static_cast<int>(std::lround(4.0 * static_cast<double>(dpiY)));
+
+    // Compute width preserving client aspect ratio
+    const double clientAspect = (clientWidth > 0 && clientHeight > 0) ?
+        (static_cast<double>(clientWidth) / static_cast<double>(clientHeight)) : 1.0;
+    const int widthPx = static_cast<int>(std::lround(heightPx * clientAspect));
+
+    // Allocate bitmap with DPI-aware dimensions
+    int finalWidth = widthPx > 0 ? widthPx : 1;
+    int finalHeight = heightPx > 0 ? heightPx : 1;
+    ResizeBitmap(finalWidth, finalHeight);
 }
 
 void CMandelbrotDoc::RenderMandelbrot()
@@ -152,14 +143,17 @@ void CMandelbrotDoc::RenderMandelbrot()
     if (!m_pBits || !m_bitmap.GetSafeHandle() || m_width <= 0 || m_height <= 0)
         return;
 
-    const double aspect = double(m_height) / m_width;
-    const double planeW = m_scale;
-    const double planeH = m_scale * aspect;
+    // m_scale represents the imaginary plane HEIGHT (e.g., 4.0 initially)
+    // Compute the real plane width based on pixel aspect ratio
+    const double pixelAspect = double(m_width) / m_height;
+    const double planeH = m_scale;
+    const double planeW = planeH * pixelAspect;
 
     const double left = m_centerX - planeW / 2.0;
     const double top = m_centerY + planeH / 2.0;
 
-    const int stride = m_width * 3;   // bytes per row
+    // DIB rows must be 4-byte aligned
+    const int stride = ((m_width * 3 + 3) / 4) * 4;
 
     for (int y = 0; y < m_height; ++y)
     {
