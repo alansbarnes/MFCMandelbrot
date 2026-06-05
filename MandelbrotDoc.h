@@ -33,6 +33,7 @@ public:
     virtual void Serialize(CArchive& ar) override;
 
     void ResizeBitmap(int width, int height);
+    void ResizeBitmapForDisplay(HWND hWnd, int clientWidth = 0, int clientHeight = 0);
     void RenderMandelbrot();
 
     DECLARE_MESSAGE_MAP()

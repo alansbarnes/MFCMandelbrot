@@ -17,6 +17,10 @@ BEGIN_MESSAGE_MAP(CMandelbrotView, CView)
     ON_WM_LBUTTONUP()
     ON_WM_MOUSEMOVE()
     ON_WM_MOUSEWHEEL()
+    ON_WM_SIZE()
+#ifdef WM_DPICHANGED
+    ON_WM_DPICHANGED()
+#endif
 END_MESSAGE_MAP()
 
 CMandelbrotView::CMandelbrotView() noexcept
@@ -31,21 +35,18 @@ void CMandelbrotView::OnInitialUpdate()
     CMandelbrotDoc* pDoc = GetDocument();
     ASSERT_VALID(pDoc);
 
-    // Ensure bitmap exists
-    if (!pDoc->HasBitmap())
-        pDoc->RenderMandelbrot();
+    CRect rcClient;
+    GetClientRect(&rcClient);
+    pDoc->ResizeBitmapForDisplay(GetSafeHwnd(), rcClient.Width(), rcClient.Height());
+    pDoc->RenderMandelbrot();
 
-    // Set scroll sizes to size of bitmap
-    CSize bmSize(g_state.width, g_state.height);
+    CSize bmSize(pDoc->m_width, pDoc->m_height);
 
     // --- Clamp client area to bitmap dimensions ---
     CFrameWnd* pFrame = GetParentFrame();
     if (pFrame)
     {
         // Current client area
-        CRect rcClient;
-        GetClientRect(&rcClient);
-
         // How much we need to grow/shrink the frame
         int dx = bmSize.cx - rcClient.Width();
         int dy = bmSize.cy - rcClient.Height();
@@ -159,6 +160,40 @@ BOOL CMandelbrotView::OnMouseWheel(UINT nFlags, short zDelta, CPoint pt)
 
     return TRUE;
 }
+
+void CMandelbrotView::OnSize(UINT nType, int cx, int cy)
+{
+    CView::OnSize(nType, cx, cy);
+
+    if (nType == SIZE_MINIMIZED || cx <= 0 || cy <= 0)
+        return;
+
+    CMandelbrotDoc* pDoc = GetDocument();
+    if (!pDoc)
+        return;
+
+    pDoc->ResizeBitmapForDisplay(GetSafeHwnd(), cx, cy);
+    pDoc->RenderMandelbrot();
+    Invalidate();
+}
+
+#ifdef WM_DPICHANGED
+void CMandelbrotView::OnDpiChanged(UINT nDpiX, UINT nDpiY, LPRECT pRect)
+{
+    CView::OnDpiChanged(nDpiX, nDpiY, pRect);
+
+    CMandelbrotDoc* pDoc = GetDocument();
+    if (!pDoc)
+        return;
+
+    CRect rcClient;
+    GetClientRect(&rcClient);
+
+    pDoc->ResizeBitmapForDisplay(GetSafeHwnd(), rcClient.Width(), rcClient.Height());
+    pDoc->RenderMandelbrot();
+    Invalidate();
+}
+#endif
 
 #ifdef _DEBUG
 void CMandelbrotView::AssertValid() const
