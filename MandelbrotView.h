@@ -12,7 +12,10 @@ public:
 protected:
     CPoint m_dragStart;
     CPoint m_dragEnd;
+    CRect  m_constrainedRect;
+    CSize  m_clientAreaAspect;
     bool   m_dragging;
+    bool   m_showConstrainedRect;
 
 public:
     virtual void OnDraw(CDC* pDC) override;

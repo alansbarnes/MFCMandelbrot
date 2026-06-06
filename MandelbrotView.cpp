@@ -5,6 +5,8 @@
 #include "MandelbrotDoc.h"
 #include "MandelbrotView.h"
 
+#include <algorithm>
+#include <cmath>
 #include <format>
 #include <string>
 
@@ -24,7 +26,10 @@ BEGIN_MESSAGE_MAP(CMandelbrotView, CView)
 END_MESSAGE_MAP()
 
 CMandelbrotView::CMandelbrotView() noexcept
-    : m_dragging(false)
+    : m_constrainedRect(0, 0, 0, 0)
+    , m_clientAreaAspect(1, 1)
+    , m_dragging(false)
+    , m_showConstrainedRect(false)
 {
 }
 
@@ -106,11 +111,9 @@ void CMandelbrotView::OnDraw(CDC* pDC)
 
     memDC.SelectObject(pOld);
 
-    if (m_dragging)
+    if (m_showConstrainedRect)
     {
-        CRect rc(m_dragStart, m_dragEnd);
-        rc.NormalizeRect();
-        pDC->DrawFocusRect(rc);
+        pDC->DrawFocusRect(m_constrainedRect);
     }
 
     constexpr int D = std::numeric_limits<double>::max_digits10;
@@ -136,6 +139,13 @@ void CMandelbrotView::OnLButtonDown(UINT nFlags, CPoint pt)
 {
     m_dragging = true;
     m_dragStart = m_dragEnd = pt;
+    m_constrainedRect.SetRect(pt.x, pt.y, pt.x, pt.y);
+    m_showConstrainedRect = true;
+
+    CRect clientRect;
+    GetClientRect(&clientRect);
+    m_clientAreaAspect = clientRect.Size();
+
     SetCapture();
 }
 
@@ -145,12 +155,15 @@ void CMandelbrotView::OnLButtonUp(UINT nFlags, CPoint pt)
         return;
 
     m_dragging = false;
+    const CRect constrainedRect = m_constrainedRect;
+    const bool zoomSelection = m_showConstrainedRect &&
+        constrainedRect.Width() > 4 &&
+        constrainedRect.Height() > 4 &&
+        constrainedRect.PtInRect(pt);
+    m_showConstrainedRect = false;
     ReleaseCapture();
 
-    CRect rc(m_dragStart, pt);
-    rc.NormalizeRect();
-
-    if (rc.Width() > 4 && rc.Height() > 4)
+    if (zoomSelection)
     {
         CMandelbrotDoc* pDoc = GetDocument();
 
@@ -162,20 +175,19 @@ void CMandelbrotView::OnLButtonUp(UINT nFlags, CPoint pt)
         double left = pDoc->m_centerX - planeW / 2.0;
         double top = pDoc->m_centerY + planeH / 2.0;
 
-        double x1 = left + (double(rc.left) / pDoc->m_width) * planeW;
-        double y1 = top - (double(rc.top) / pDoc->m_height) * planeH;
-        double x2 = left + (double(rc.right) / pDoc->m_width) * planeW;
-        double y2 = top - (double(rc.bottom) / pDoc->m_height) * planeH;
+        double x1 = left + (double(constrainedRect.left) / pDoc->m_width) * planeW;
+        double y1 = top - (double(constrainedRect.top) / pDoc->m_height) * planeH;
+        double x2 = left + (double(constrainedRect.right) / pDoc->m_width) * planeW;
+        double y2 = top - (double(constrainedRect.bottom) / pDoc->m_height) * planeH;
 
         pDoc->m_centerX = (x1 + x2) / 2.0;
         pDoc->m_centerY = (y1 + y2) / 2.0;
-        pDoc->m_scale = max(fabs(x2 - x1), fabs(y2 - y1)) / pixelAspect;  // Preserve height semantics
+        pDoc->m_scale = std::max(std::fabs(x2 - x1), std::fabs(y2 - y1)) / pixelAspect;  // Preserve height semantics
 
         pDoc->RenderMandelbrot();
-        Invalidate();
     }
 
-    Invalidate();
+    Invalidate(FALSE);
 }
 
 void CMandelbrotView::OnMouseMove(UINT nFlags, CPoint pt)
@@ -183,6 +195,61 @@ void CMandelbrotView::OnMouseMove(UINT nFlags, CPoint pt)
     if (m_dragging)
     {
         m_dragEnd = pt;
+        const double clientAspect = (m_clientAreaAspect.cy > 0) ?
+            (static_cast<double>(m_clientAreaAspect.cx) / static_cast<double>(m_clientAreaAspect.cy)) : 1.0;
+
+        const int deltaX = pt.x - m_dragStart.x;
+        const int deltaY = pt.y - m_dragStart.y;
+
+        double width = static_cast<double>(std::abs(deltaX));
+        double height = static_cast<double>(std::abs(deltaY));
+
+        if (width > 0.0 || height > 0.0)
+        {
+            if (width == 0.0)
+            {
+                width = height * clientAspect;
+            }
+            else if (height == 0.0)
+            {
+                height = width / clientAspect;
+            }
+            else if ((width / height) > clientAspect)
+            {
+                height = width / clientAspect;
+            }
+            else
+            {
+                width = height * clientAspect;
+            }
+
+            CRect clientRect;
+            GetClientRect(&clientRect);
+
+            const int signX = (deltaX < 0) ? -1 : 1;
+            const int signY = (deltaY < 0) ? -1 : 1;
+
+            const double maxWidth = static_cast<double>((signX > 0) ? (clientRect.right - m_dragStart.x) : (m_dragStart.x - clientRect.left));
+            const double maxHeight = static_cast<double>((signY > 0) ? (clientRect.bottom - m_dragStart.y) : (m_dragStart.y - clientRect.top));
+
+            const double widthScale = (width > 0.0) ? (maxWidth / width) : 1.0;
+            const double heightScale = (height > 0.0) ? (maxHeight / height) : 1.0;
+            const double scale = std::min(1.0, std::min(widthScale, heightScale));
+
+            width = std::max(0.0, width * scale);
+            height = std::max(0.0, height * scale);
+
+            const int constrainedX = m_dragStart.x + signX * static_cast<int>(std::lround(width));
+            const int constrainedY = m_dragStart.y + signY * static_cast<int>(std::lround(height));
+
+            m_constrainedRect.SetRect(m_dragStart.x, m_dragStart.y, constrainedX, constrainedY);
+            m_constrainedRect.NormalizeRect();
+        }
+        else
+        {
+            m_constrainedRect.SetRect(m_dragStart.x, m_dragStart.y, m_dragStart.x, m_dragStart.y);
+        }
+
         Invalidate(FALSE);
     }
 }
@@ -209,7 +276,7 @@ void CMandelbrotView::OnSize(UINT nType, int cx, int cy)
         return;
 
     // Recompute bitmap dimensions based on new client area
-    pDoc->ResizeBitmapForDisplay(m_hWnd, cx, cy);
+    pDoc->ResizeBitmap(cx, cy);
     pDoc->RenderMandelbrot();
     Invalidate();
 }
