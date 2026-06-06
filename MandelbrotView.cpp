@@ -16,8 +16,8 @@ IMPLEMENT_DYNCREATE(CMandelbrotView, CView)
 
 BEGIN_MESSAGE_MAP(CMandelbrotView, CView)
     ON_WM_ERASEBKGND()
-    ON_WM_LBUTTONDOWN()
-    ON_WM_LBUTTONUP()
+    ON_WM_RBUTTONDOWN()
+    ON_WM_RBUTTONUP()
     ON_WM_MOUSEMOVE()
     ON_WM_MOUSEWHEEL()
     ON_WM_SIZE()
@@ -132,14 +132,14 @@ BOOL CMandelbrotView::OnEraseBkgnd(CDC* pDC)
     return TRUE;
 }
 
-void CMandelbrotView::OnLButtonDown(UINT nFlags, CPoint pt)
+void CMandelbrotView::OnRButtonDown(UINT nFlags, CPoint pt)
 {
     m_dragging = true;
     m_dragStart = m_dragEnd = pt;
     SetCapture();
 }
 
-void CMandelbrotView::OnLButtonUp(UINT nFlags, CPoint pt)
+void CMandelbrotView::OnRButtonUp(UINT nFlags, CPoint pt)
 {
     if (!m_dragging)
         return;
@@ -209,7 +209,7 @@ void CMandelbrotView::OnSize(UINT nType, int cx, int cy)
         return;
 
     // Recompute bitmap dimensions based on new client area
-    pDoc->ResizeBitmapForDisplay(m_hWnd, cx, cy);
+    pDoc->ResizeBitmap(cx, cy);
     pDoc->RenderMandelbrot();
     Invalidate();
 }
