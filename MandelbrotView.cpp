@@ -27,7 +27,6 @@ END_MESSAGE_MAP()
 
 CMandelbrotView::CMandelbrotView() noexcept
     : m_constrainedRect(0, 0, 0, 0)
-    , m_clientAreaAspect(1, 1)
     , m_dragging(false)
     , m_showConstrainedRect(false)
 {
@@ -142,9 +141,6 @@ void CMandelbrotView::OnLButtonDown(UINT nFlags, CPoint pt)
     m_constrainedRect.SetRect(pt.x, pt.y, pt.x, pt.y);
     m_showConstrainedRect = true;
 
-    CRect clientRect;
-    GetClientRect(&clientRect);
-    m_clientAreaAspect = clientRect.Size();
 
     SetCapture();
 }
@@ -195,8 +191,11 @@ void CMandelbrotView::OnMouseMove(UINT nFlags, CPoint pt)
     if (m_dragging)
     {
         m_dragEnd = pt;
-        const double clientAspect = (m_clientAreaAspect.cy > 0) ?
-            (static_cast<double>(m_clientAreaAspect.cx) / static_cast<double>(m_clientAreaAspect.cy)) : 1.0;
+        CRect clientRect;
+        GetClientRect(&clientRect);
+        const CSize clientSize = clientRect.Size();
+        const double clientAspect = (clientSize.cy > 0) ?
+            (static_cast<double>(clientSize.cx) / static_cast<double>(clientSize.cy)) : 1.0;
 
         const int deltaX = pt.x - m_dragStart.x;
         const int deltaY = pt.y - m_dragStart.y;
@@ -222,9 +221,6 @@ void CMandelbrotView::OnMouseMove(UINT nFlags, CPoint pt)
             {
                 width = height * clientAspect;
             }
-
-            CRect clientRect;
-            GetClientRect(&clientRect);
 
             const int signX = (deltaX < 0) ? -1 : 1;
             const int signY = (deltaY < 0) ? -1 : 1;
@@ -277,7 +273,6 @@ void CMandelbrotView::OnSize(UINT nType, int cx, int cy)
 
     // Recompute bitmap dimensions based on new client area
     pDoc->ResizeBitmap(cx, cy);
-    pDoc->RenderMandelbrot();
     Invalidate();
 }
 
