@@ -5,6 +5,12 @@
 #include "PropertiesDlg.h"
 #include "Properties.h"
 
+#include <string>
+#include <format>
+#include <limits>
+#include <algorithm>
+#include <cmath>
+
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
@@ -20,13 +26,87 @@ BEGIN_MESSAGE_MAP(CMandelbrotView, CView)
     ON_COMMAND(ID_ITER_DEC, &CMandelbrotView::OnIterDec)
 
     ON_WM_LBUTTONDOWN()
-    ON_WM_MOUSEMOVE()
     ON_WM_RBUTTONDOWN()
     ON_WM_RBUTTONUP()
+    ON_WM_MOUSEMOVE()
+    ON_WM_MOUSEWHEEL()
+    ON_WM_SIZE()
 END_MESSAGE_MAP()
 
 CMandelbrotView::CMandelbrotView() noexcept
 {
+}
+
+CMandelbrotDoc* CMandelbrotView::GetDocument() const
+{
+    return reinterpret_cast<CMandelbrotDoc*>(m_pDocument);
+}
+
+void CMandelbrotView::OnInitialUpdate()
+{
+    CView::OnInitialUpdate();
+
+    CMandelbrotDoc* pDoc = GetDocument();
+    if (!pDoc)
+        return;
+
+    CRect rc;
+    GetClientRect(&rc);
+
+    pDoc->ResizeBitmap(rc.Width(), rc.Height());
+    pDoc->RenderMandelbrot();
+
+    Invalidate();
+    UpdateWindow();
+}
+
+void CMandelbrotView::OnDraw(CDC* pDC)
+{
+    CMandelbrotDoc* pDoc = GetDocument();
+    if (!pDoc || !pDoc->HasBitmap())
+        return;
+
+    CBitmap* pBmp = pDoc->GetBitmap();
+    if (!pBmp || !pBmp->GetSafeHandle())
+        return;
+
+    BITMAP bm = {};
+    pBmp->GetBitmap(&bm);
+
+    CDC memDC;
+    memDC.CreateCompatibleDC(pDC);
+    CBitmap* pOld = memDC.SelectObject(pBmp);
+
+    pDC->BitBlt(0, 0, bm.bmWidth, bm.bmHeight, &memDC, 0, 0, SRCCOPY);
+
+    memDC.SelectObject(pOld);
+
+    // Draw selection rectangle
+    if (m_bDragging)
+    {
+        CPen pen(PS_SOLID, 1, RGB(255, 255, 255));
+        CPen* oldPen = pDC->SelectObject(&pen);
+        CBrush* oldBrush = (CBrush*)pDC->SelectStockObject(NULL_BRUSH);
+
+        pDC->Rectangle(m_rcCapture);
+
+        pDC->SelectObject(oldPen);
+        pDC->SelectObject(oldBrush);
+    }
+
+    // Status overlay
+    constexpr int D = std::numeric_limits<double>::max_digits10;
+    std::string info =
+        "Center: " + std::format("{:.{}g}", pDoc->m_centerX, D) +
+        " + " + std::format("{:.{}g}", pDoc->m_centerY, D) + "i" +
+        "  Height: " + std::format("{:.{}g}", pDoc->m_scale, D) + "i" +
+        "  Iter: " + std::to_string(pDoc->m_maxIter);
+
+    SetTextColor(*pDC, RGB(255, 255, 255));
+    SetBkMode(*pDC, TRANSPARENT);
+    RECT r = { 8, 8, bm.bmWidth - 8, 40 };
+    DrawTextA(*pDC, info.c_str(), static_cast<int>(info.size()), &r,
+        DT_LEFT | DT_SINGLELINE | DT_NOPREFIX);
 }
 
 void CMandelbrotView::OnSize(UINT nType, int cx, int cy)
@@ -36,13 +116,12 @@ void CMandelbrotView::OnSize(UINT nType, int cx, int cy)
     if (cx <= 0 || cy <= 0)
         return;
 
-    CMandelbrotDoc* pDoc = static_cast<CMandelbrotDoc*>(GetDocument());
+    CMandelbrotDoc* pDoc = GetDocument();
     if (!pDoc)
         return;
 
     pDoc->ResizeBitmap(cx, cy);
     pDoc->RenderMandelbrot();
-
     Invalidate();
 }
 
@@ -50,8 +129,7 @@ void CMandelbrotView::OnProperties()
 {
     CPropertiesDlg dlg(this);
 
-    // Initialize dialog from current doc state
-    CMandelbrotDoc* pDoc = static_cast<CMandelbrotDoc*>(GetDocument());
+    CMandelbrotDoc* pDoc = GetDocument();
     if (!pDoc)
         return;
 
@@ -62,13 +140,11 @@ void CMandelbrotView::OnProperties()
 
     if (dlg.DoModal() == IDOK)
     {
-        // Apply dialog values to the document
         pDoc->m_maxIter = g_props.maxIter;
         pDoc->m_centerX = g_props.centerReal;
         pDoc->m_centerY = g_props.centerImag;
         pDoc->m_scale = g_props.height;
 
-        // Re-render and refresh
         pDoc->RenderMandelbrot();
         Invalidate();
     }
@@ -78,7 +154,7 @@ void CMandelbrotView::OnViewReset()
 {
     g_props = Properties{};
 
-    CMandelbrotDoc* pDoc = static_cast<CMandelbrotDoc*>(GetDocument());
+    CMandelbrotDoc* pDoc = GetDocument();
     if (!pDoc)
         return;
 
@@ -93,7 +169,7 @@ void CMandelbrotView::OnViewReset()
 
 void CMandelbrotView::OnIterInc()
 {
-    CMandelbrotDoc* pDoc = static_cast<CMandelbrotDoc*>(GetDocument());
+    CMandelbrotDoc* pDoc = GetDocument();
     if (!pDoc)
         return;
 
@@ -104,7 +180,7 @@ void CMandelbrotView::OnIterInc()
 
 void CMandelbrotView::OnIterDec()
 {
-    CMandelbrotDoc* pDoc = static_cast<CMandelbrotDoc*>(GetDocument());
+    CMandelbrotDoc* pDoc = GetDocument();
     if (!pDoc)
         return;
 
@@ -115,114 +191,63 @@ void CMandelbrotView::OnIterDec()
     Invalidate();
 }
 
-void CMandelbrotView::OnInitialUpdate()
-{
-    CView::OnInitialUpdate();
-
-    CMandelbrotDoc* pDoc = static_cast<CMandelbrotDoc*>(GetDocument());
-    if (!pDoc)
-        return;
-
-    CRect rc;
-    GetClientRect(&rc);
-
-    pDoc->ResizeBitmapForDisplay(m_hWnd, rc.Width(), rc.Height());
-    pDoc->RenderMandelbrot();
-
-    Invalidate();
-    UpdateWindow();
-}
-
-void CMandelbrotView::OnDraw(CDC* pDC)
-{
-    CMandelbrotDoc* pDoc = static_cast<CMandelbrotDoc*>(GetDocument());
-    if (!pDoc || !pDoc->HasBitmap())
-        return;
-
-    CBitmap* pBmp = pDoc->GetBitmap();
-    if (!pBmp || !pBmp->GetSafeHandle())
-        return;
-
-    BITMAP bm = {};
-    pBmp->GetBitmap(&bm);
-    if (bm.bmWidth <= 0 || bm.bmHeight <= 0)
-        return;
-
-    CDC memDC;
-    if (!memDC.CreateCompatibleDC(pDC))
-        return;
-
-    CBitmap* pOld = memDC.SelectObject(pBmp);
-    if (!pOld)
-        return;
-
-    pDC->BitBlt(0, 0, bm.bmWidth, bm.bmHeight, &memDC, 0, 0, SRCCOPY);
-
-    memDC.SelectObject(pOld);
-
-    if (m_bDragging)
-    {
-        CPen pen(PS_SOLID, 1, RGB(255, 255, 255));
-        CPen* oldPen = pDC->SelectObject(&pen);
-        CBrush* oldBrush = (CBrush*)pDC->SelectStockObject(NULL_BRUSH);
-
-        pDC->Rectangle(m_rcCapture);
-
-        pDC->SelectObject(oldPen);
-        pDC->SelectObject(oldBrush);
-    }
-}
-
 void CMandelbrotView::OnLButtonDown(UINT, CPoint pt)
 {
-    if (m_bDragging)
-        return; // ignore if dragging
+    // If clicking inside rectangle → zoom
+    if (m_rcCapture.PtInRect(pt) &&
+        m_rcCapture.Width() > 4 &&
+        m_rcCapture.Height() > 4)
+    {
+        CMandelbrotDoc* pDoc = GetDocument();
+        if (!pDoc)
+            return;
 
-    // Only zoom if click is inside the rectangle
-    if (!m_rcCapture.PtInRect(pt))
+        double pixelAspect = double(pDoc->m_width) / pDoc->m_height;
+
+        double planeH = pDoc->m_scale;
+        double planeW = planeH * pixelAspect;
+
+        double left = pDoc->m_centerX - planeW / 2.0;
+        double top = pDoc->m_centerY + planeH / 2.0;
+
+        auto mapX = [&](int px)
+            {
+                return left + (double(px) / (pDoc->m_width - 1)) * planeW;
+            };
+
+        auto mapY = [&](int py)
+            {
+                return top - (double(py) / (pDoc->m_height - 1)) * planeH;
+            };
+
+        double x1 = mapX(m_rcCapture.left);
+        double x2 = mapX(m_rcCapture.right);
+        double y1 = mapY(m_rcCapture.top);
+        double y2 = mapY(m_rcCapture.bottom);
+
+        pDoc->m_centerX = (x1 + x2) / 2.0;
+        pDoc->m_centerY = (y1 + y2) / 2.0;
+        pDoc->m_scale = fabs(y2 - y1);
+
+        m_rcCapture.SetRectEmpty();
+
+        pDoc->RenderMandelbrot();
+        Invalidate();
         return;
+    }
 
-    CMandelbrotDoc* pDoc = static_cast<CMandelbrotDoc*>(GetDocument());
+    // Otherwise begin panning
+    m_bDragging = false; // ensure rectangle is cleared
+    m_rcCapture.SetRectEmpty();
+
+    CMandelbrotDoc* pDoc = GetDocument();
     if (!pDoc)
         return;
 
-    // Convert pixel rectangle → complex plane rectangle
-    double pixelAspect = double(pDoc->m_width) / pDoc->m_height;
+    m_ptAnchor = pt;
+    m_aspect = double(pDoc->m_width) / pDoc->m_height;
 
-    double planeH = pDoc->m_scale;
-    double planeW = planeH * pixelAspect;
-
-    double left = pDoc->m_centerX - planeW / 2.0;
-    double top = pDoc->m_centerY + planeH / 2.0;
-
-    auto mapX = [&](int px)
-        {
-            return left + (double(px) / (pDoc->m_width - 1)) * planeW;
-        };
-
-    auto mapY = [&](int py)
-        {
-            return top - (double(py) / (pDoc->m_height - 1)) * planeH;
-        };
-
-    double x1 = mapX(m_rcCapture.left);
-    double x2 = mapX(m_rcCapture.right);
-    double y1 = mapY(m_rcCapture.top);
-    double y2 = mapY(m_rcCapture.bottom);
-
-    // New center
-    pDoc->m_centerX = (x1 + x2) / 2.0;
-    pDoc->m_centerY = (y1 + y2) / 2.0;
-
-    // New scale (height of selected region)
-    pDoc->m_scale = fabs(y2 - y1);
-
-    // Clear rectangle
-    m_rcCapture.SetRectEmpty();
-
-    // Re-render
-    pDoc->RenderMandelbrot();
-    Invalidate();
+    SetCapture();
 }
 
 void CMandelbrotView::OnRButtonDown(UINT, CPoint pt)
@@ -230,7 +255,6 @@ void CMandelbrotView::OnRButtonDown(UINT, CPoint pt)
     m_bDragging = true;
     m_ptAnchor = pt;
 
-    // Compute aspect ratio of the view
     CRect rc;
     GetClientRect(&rc);
     m_aspect = double(rc.Width()) / rc.Height();
@@ -247,14 +271,20 @@ void CMandelbrotView::OnMouseMove(UINT, CPoint pt)
     int dx = pt.x - m_ptAnchor.x;
     int dy = pt.y - m_ptAnchor.y;
 
-    // Enforce aspect ratio
+    // Aspect ratio lock
     if (abs(dx) > abs(dy))
         dy = int(abs(dx) / m_aspect) * (dy < 0 ? -1 : 1);
     else
         dx = int(abs(dy) * m_aspect) * (dx < 0 ? -1 : 1);
 
-    m_rcCapture.SetRect(m_ptAnchor.x, m_ptAnchor.y,
-        m_ptAnchor.x + dx, m_ptAnchor.y + dy);
+    // Constrain to client area
+    CRect client;
+    GetClientRect(&client);
+
+    int x2 = std::clamp(m_ptAnchor.x + dx, client.left, client.right);
+    int y2 = std::clamp(m_ptAnchor.y + dy, client.top, client.bottom);
+
+    m_rcCapture.SetRect(m_ptAnchor.x, m_ptAnchor.y, x2, y2);
     m_rcCapture.NormalizeRect();
 
     Invalidate(FALSE);
@@ -269,8 +299,36 @@ void CMandelbrotView::OnRButtonUp(UINT, CPoint)
     ReleaseCapture();
 }
 
-void CMandelbrotView::UpdateCaptureRect(CPoint pt)
+BOOL CMandelbrotView::OnMouseWheel(UINT, short zDelta, CPoint pt)
 {
-    m_rcCapture.SetRect(m_ptAnchor.x, m_ptAnchor.y, pt.x, pt.y);
-    m_rcCapture.NormalizeRect();
+    CMandelbrotDoc* pDoc = GetDocument();
+    if (!pDoc)
+        return FALSE;
+
+    ScreenToClient(&pt);
+
+    double pixelAspect = double(pDoc->m_width) / pDoc->m_height;
+
+    double planeH = pDoc->m_scale;
+    double planeW = planeH * pixelAspect;
+
+    double left = pDoc->m_centerX - planeW / 2.0;
+    double top = pDoc->m_centerY + planeH / 2.0;
+
+    double cx = left + (double(pt.x) / (pDoc->m_width - 1)) * planeW;
+    double cy = top - (double(pt.y) / (pDoc->m_height - 1)) * planeH;
+
+    double factor = (zDelta > 0) ? 0.8 : 1.25;
+    pDoc->m_scale *= factor;
+
+    planeH = pDoc->m_scale;
+    planeW = planeH * pixelAspect;
+
+    pDoc->m_centerX = cx - (double(pt.x) / (pDoc->m_width - 1)) * planeW;
+    pDoc->m_centerY = cy + (double(pt.y) / (pDoc->m_height - 1)) * planeH;
+
+    pDoc->RenderMandelbrot();
+    Invalidate();
+
+    return TRUE;
 }

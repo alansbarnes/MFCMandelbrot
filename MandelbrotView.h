@@ -2,33 +2,47 @@
 
 #include "Properties.h"
 
+class CMandelbrotDoc;
+
 class CMandelbrotView : public CView
 {
 protected:
     CMandelbrotView() noexcept;
-    double m_aspect = 1.0;
-    bool m_bDragging = false;
-    CPoint m_ptAnchor;
-    CRect m_rcCapture;
-
-    void UpdateCaptureRect(CPoint pt);
     DECLARE_DYNCREATE(CMandelbrotView)
+
+public:
+    CMandelbrotDoc* GetDocument() const;
+
+protected:
+    // === Interaction state ===
+    bool   m_bDragging = false;   // right-button rectangle drag
+    double m_aspect = 1.0;     // view aspect ratio
+    CPoint m_ptAnchor;            // rectangle anchor point
+    CRect  m_rcCapture;           // rectangle bounds
+
+    // === Internal helpers ===
+    void UpdateCaptureRect(CPoint pt);
 
 public:
     virtual void OnInitialUpdate() override;
     virtual void OnDraw(CDC* pDC) override;
 
-    void OnLButtonDown(UINT, CPoint pt);
-    void OnRButtonDown(UINT, CPoint pt);
-    void OnMouseMove(UINT, CPoint pt);
-    void OnRButtonUp(UINT, CPoint pt);
-
 protected:
-    DECLARE_MESSAGE_MAP()
+    // === Mouse interaction ===
+    afx_msg void OnRButtonDown(UINT nFlags, CPoint pt);
+    afx_msg void OnRButtonUp(UINT nFlags, CPoint pt);
+    afx_msg void OnMouseMove(UINT nFlags, CPoint pt);
+    afx_msg void OnLButtonDown(UINT nFlags, CPoint pt);
+    afx_msg BOOL OnMouseWheel(UINT nFlags, short zDelta, CPoint pt);
 
-    afx_msg void OnSize(UINT nType, int cx, int cy);
+    // === Commands ===
     afx_msg void OnProperties();
     afx_msg void OnViewReset();
     afx_msg void OnIterInc();
     afx_msg void OnIterDec();
+
+    // === Resize ===
+    afx_msg void OnSize(UINT nType, int cx, int cy);
+
+    DECLARE_MESSAGE_MAP()
 };
