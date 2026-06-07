@@ -1,35 +1,34 @@
 #pragma once
 
+#include "Properties.h"
+
 class CMandelbrotView : public CView
 {
 protected:
     CMandelbrotView() noexcept;
+    double m_aspect = 1.0;
+    bool m_bDragging = false;
+    CPoint m_ptAnchor;
+    CRect m_rcCapture;
+
+    void UpdateCaptureRect(CPoint pt);
     DECLARE_DYNCREATE(CMandelbrotView)
 
 public:
-    CMandelbrotDoc* GetDocument() const;
-
-protected:
-    CPoint m_dragStart;
-    CPoint m_dragEnd;
-    bool   m_dragging;
-
-public:
-    virtual void OnDraw(CDC* pDC) override;
     virtual void OnInitialUpdate() override;
+    virtual void OnDraw(CDC* pDC) override;
+
+    void OnLButtonDown(UINT, CPoint pt);
+    void OnRButtonDown(UINT, CPoint pt);
+    void OnMouseMove(UINT, CPoint pt);
+    void OnRButtonUp(UINT, CPoint pt);
 
 protected:
-    afx_msg BOOL OnEraseBkgnd(CDC* pDC);
-    afx_msg void OnRButtonDown(UINT nFlags, CPoint pt);
-    afx_msg void OnRButtonUp(UINT nFlags, CPoint pt);
-    afx_msg void OnMouseMove(UINT nFlags, CPoint pt);
-    afx_msg BOOL OnMouseWheel(UINT nFlags, short zDelta, CPoint pt);
-    afx_msg void OnSize(UINT nType, int cx, int cy);
-
     DECLARE_MESSAGE_MAP()
 
-#ifdef _DEBUG
-    virtual void AssertValid() const override;
-    virtual void Dump(CDumpContext& dc) const override;
-#endif
+    afx_msg void OnSize(UINT nType, int cx, int cy);
+    afx_msg void OnProperties();
+    afx_msg void OnViewReset();
+    afx_msg void OnIterInc();
+    afx_msg void OnIterDec();
 };

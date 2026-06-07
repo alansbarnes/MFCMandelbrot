@@ -12,10 +12,8 @@
 #define IDS_TOOLBAR_STANDARD		124
 #define IDS_TOOLBAR_CUSTOMIZE		125
 #define ID_VIEW_CUSTOMIZE			126
-#define IDR_MAINFRAME				128
-#define IDR_MAINFRAME_256			129
-#define IDR_MFCMandelbrotTYPE				130
-#define ID_WINDOW_MANAGER			131
+#define IDR_MAINFRAME               128
+#define IDR_MFCMANDELTYPE           129
 #define ID_VIEW_FILEVIEW			133
 #define ID_VIEW_CLASSVIEW			134
 #define ID_PROPERTIES				135
@@ -85,13 +83,37 @@
 #define IDS_EXPLORER				305
 #define IDS_EDIT_MENU				306
 
+// Dialogs
+#define IDD_ABOUTBOX                100
+#define IDD_PROPERTIES              130
+
+// Properties dialog controls
+#define IDC_EDIT_MAXITER            1000
+#define IDC_EDIT_CENTER_REAL        1001
+#define IDC_EDIT_CENTER_IMAG        1002
+#define IDC_EDIT_HEIGHT             1003
+#define IDC_EDIT_RMIN               1004
+#define IDC_EDIT_RMAX               1005
+#define IDC_EDIT_GMIN               1006
+#define IDC_EDIT_GMAX               1007
+#define IDC_EDIT_BMIN               1008
+#define IDC_EDIT_BMAX               1009
+
+// Menu commands
+#define IDM_PROPERTIES              32771
+#define ID_VIEW_RESET               32772
+#define ID_ITER_INC                 32773
+#define ID_ITER_DEC                 32774
+#define ID_EXIT                     32775
+#define ID_ABOUT                   32776
+
 // Next default values for new objects
 //
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE	310
-#define _APS_NEXT_CONTROL_VALUE		1000
-#define _APS_NEXT_SYMED_VALUE		310
-#define _APS_NEXT_COMMAND_VALUE		32771
+#define _APS_NEXT_RESOURCE_VALUE    131
+#define _APS_NEXT_COMMAND_VALUE     32777
+#define _APS_NEXT_CONTROL_VALUE     1010
+#define _APS_NEXT_SYMED_VALUE       101
 #endif
 #endif

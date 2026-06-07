@@ -1,5 +1,4 @@
 #include "pch.h"
-#include "framework.h"
 #include "MFCMandelbrot.h"
 #include "MainFrm.h"
 
@@ -7,10 +6,12 @@
 #define new DEBUG_NEW
 #endif
 
-IMPLEMENT_DYNCREATE(CMainFrame, CFrameWnd)
+IMPLEMENT_DYNCREATE(CMainFrame, CFrameWndEx)
 
-BEGIN_MESSAGE_MAP(CMainFrame, CFrameWnd)
+BEGIN_MESSAGE_MAP(CMainFrame, CFrameWndEx)
     ON_WM_CREATE()
+    ON_COMMAND(ID_EXIT, &CMainFrame::OnExit)
+    ON_COMMAND(ID_ABOUT, &CMainFrame::OnAbout)
 END_MESSAGE_MAP()
 
 CMainFrame::CMainFrame() noexcept
@@ -19,30 +20,42 @@ CMainFrame::CMainFrame() noexcept
 
 BOOL CMainFrame::PreCreateWindow(CREATESTRUCT& cs)
 {
-    if (!CFrameWnd::PreCreateWindow(cs))
+    if (!CFrameWndEx::PreCreateWindow(cs))
         return FALSE;
-
-    cs.style = WS_OVERLAPPED | WS_CAPTION | FWS_ADDTOTITLE |
-        WS_THICKFRAME | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_SYSMENU;
 
     return TRUE;
 }
 
 int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 {
-    if (CFrameWnd::OnCreate(lpCreateStruct) == -1)
+    if (CFrameWndEx::OnCreate(lpCreateStruct) == -1)
         return -1;
 
-    // Toolbar
-    if (!m_wndToolBar.CreateEx(this) ||
-        !m_wndToolBar.LoadToolBar(IDR_MAINFRAME))
-    {
+    if (!m_wndMenuBar.Create(this))
         return -1;
-    }
 
-    // Status bar
+    // Load menu resource
+    CMenu menu;
+    menu.LoadMenu(IDR_MAINFRAME);
+
+    // Attach to menu bar (correct signature)
+    m_wndMenuBar.CreateFromMenu(menu.GetSafeHmenu());
+
     if (!m_wndStatusBar.Create(this))
         return -1;
 
+    EnableDocking(CBRS_ALIGN_ANY);
+
     return 0;
+}
+
+void CMainFrame::OnExit()
+{
+    SendMessage(WM_CLOSE);
+}
+
+void CMainFrame::OnAbout()
+{
+    CDialogEx dlg(IDD_ABOUTBOX);
+    dlg.DoModal();
 }

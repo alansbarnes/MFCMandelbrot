@@ -1,6 +1,6 @@
 #pragma once
 
-extern AppState g_state;
+#include "AppState.h"
 
 class CMandelbrotDoc : public CDocument
 {

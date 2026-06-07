@@ -185,16 +185,20 @@
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="AppState.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="MainFrm.h" />
     <ClInclude Include="MandelbrotDoc.h" />
     <ClInclude Include="MandelbrotView.h" />
     <ClInclude Include="MFCMandelbrot.h" />
     <ClInclude Include="pch.h" />
+    <ClInclude Include="Properties.h" />
+    <ClInclude Include="PropertiesDlg.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="AppState.cpp" />
     <ClCompile Include="MainFrm.cpp" />
     <ClCompile Include="MandelbrotDoc.cpp" />
     <ClCompile Include="MandelbrotView.cpp" />
@@ -205,6 +209,8 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="Properties.cpp" />
+    <ClCompile Include="PropertiesDlg.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="MFCMandelbrot.rc" />

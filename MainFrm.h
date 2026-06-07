@@ -1,6 +1,8 @@
 #pragma once
 
-class CMainFrame : public CFrameWnd
+#include "afxframewndex.h"
+
+class CMainFrame : public CFrameWndEx
 {
 protected:
     CMainFrame() noexcept;
@@ -10,10 +12,13 @@ public:
     virtual BOOL PreCreateWindow(CREATESTRUCT& cs) override;
 
 protected:
-    CStatusBar m_wndStatusBar;
-    CToolBar   m_wndToolBar;
+    CMFCMenuBar     m_wndMenuBar;
+    CMFCToolBar     m_wndToolBar;
+    CMFCStatusBar   m_wndStatusBar;
 
 protected:
     afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);
+    afx_msg void OnExit();
+    afx_msg void OnAbout();
     DECLARE_MESSAGE_MAP()
 };

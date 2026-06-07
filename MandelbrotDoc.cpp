@@ -1,4 +1,4 @@
-#include "pch.h"
+﻿#include "pch.h"
 #include "framework.h"
 #include "MFCMandelbrot.h"
 #include "MandelbrotDoc.h"
@@ -56,7 +56,6 @@ void CMandelbrotDoc::ResizeBitmap(int width, int height)
     if (width <= 0 || height <= 0)
         return;
 
-    // Reset bitmap state before allocation
     if (m_bitmap.GetSafeHandle())
     {
         m_bitmap.DeleteObject();
@@ -70,9 +69,9 @@ void CMandelbrotDoc::ResizeBitmap(int width, int height)
     BITMAPINFO bmi = {};
     bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
     bmi.bmiHeader.biWidth = m_width;
-    bmi.bmiHeader.biHeight = -m_height;  // Top-down DIB
+    bmi.bmiHeader.biHeight = -m_height;   // top‑down
     bmi.bmiHeader.biPlanes = 1;
-    bmi.bmiHeader.biBitCount = 24;
+    bmi.bmiHeader.biBitCount = 32;          // 32‑bit
     bmi.bmiHeader.biCompression = BI_RGB;
 
     HDC hdc = ::GetDC(nullptr);
@@ -80,9 +79,8 @@ void CMandelbrotDoc::ResizeBitmap(int width, int height)
     HBITMAP hBmp = ::CreateDIBSection(hdc, &bmi, DIB_RGB_COLORS, &pBits, nullptr, 0);
     ::ReleaseDC(nullptr, hdc);
 
-    if (!hBmp)
+    if (!hBmp || !pBits)
     {
-        // Allocation failed; ensure cleanup
         m_pBits = nullptr;
         m_hasBitmap = false;
         return;
@@ -93,49 +91,12 @@ void CMandelbrotDoc::ResizeBitmap(int width, int height)
     m_hasBitmap = true;
 }
 
-void CMandelbrotDoc::ResizeBitmapForDisplay(HWND hWnd, int clientWidth, int clientHeight)
+void CMandelbrotDoc::ResizeBitmapForDisplay(HWND, int clientWidth, int clientHeight)
 {
     if (clientWidth <= 0 || clientHeight <= 0)
         return;
 
-    // Get DPI for the window
-    UINT dpiY = 96;  // Default fallback
-
-    // Try GetDpiForWindow if available (Windows 10+)
-    typedef UINT(WINAPI* GetDpiForWindowPtr)(HWND);
-    HMODULE hUser32 = ::GetModuleHandleA("user32.dll");
-    if (hUser32)
-    {
-        GetDpiForWindowPtr pGetDpiForWindow = reinterpret_cast<GetDpiForWindowPtr>(
-            ::GetProcAddress(hUser32, "GetDpiForWindow"));
-        if (pGetDpiForWindow)
-        {
-            dpiY = pGetDpiForWindow(hWnd);
-        }
-        else
-        {
-            // Fallback to GetDeviceCaps with LOGPIXELSY
-            HDC hdc = ::GetDC(hWnd);
-            if (hdc)
-            {
-                dpiY = ::GetDeviceCaps(hdc, LOGPIXELSY);
-                ::ReleaseDC(hWnd, hdc);
-            }
-        }
-    }
-
-    // Compute height in pixels to maintain 4-inch physical height
-    const int heightPx = static_cast<int>(std::lround(4.0 * static_cast<double>(dpiY)));
-
-    // Compute width preserving client aspect ratio
-    const double clientAspect = (clientWidth > 0 && clientHeight > 0) ?
-        (static_cast<double>(clientWidth) / static_cast<double>(clientHeight)) : 1.0;
-    const int widthPx = static_cast<int>(std::lround(heightPx * clientAspect));
-
-    // Allocate bitmap with DPI-aware dimensions
-    int finalWidth = widthPx > 0 ? widthPx : 1;
-    int finalHeight = heightPx > 0 ? heightPx : 1;
-    ResizeBitmap(finalWidth, finalHeight);
+    ResizeBitmap(clientWidth, clientHeight);
 }
 
 void CMandelbrotDoc::RenderMandelbrot()
@@ -143,8 +104,6 @@ void CMandelbrotDoc::RenderMandelbrot()
     if (!m_pBits || !m_bitmap.GetSafeHandle() || m_width <= 0 || m_height <= 0)
         return;
 
-    // m_scale represents the imaginary plane HEIGHT (e.g., 4.0 initially)
-    // Compute the real plane width based on pixel aspect ratio
     const double pixelAspect = double(m_width) / m_height;
     const double planeH = m_scale;
     const double planeW = planeH * pixelAspect;
@@ -152,8 +111,7 @@ void CMandelbrotDoc::RenderMandelbrot()
     const double left = m_centerX - planeW / 2.0;
     const double top = m_centerY + planeH / 2.0;
 
-    // DIB rows must be 4-byte aligned
-    const int stride = ((m_width * 3 + 3) / 4) * 4;
+    const int stride = m_width * 4;   // 32‑bit, no padding
 
     for (int y = 0; y < m_height; ++y)
     {
@@ -184,15 +142,16 @@ void CMandelbrotDoc::RenderMandelbrot()
             }
             else
             {
-                r = static_cast<uint8_t>(g_state.rmin + (((g_state.rmax - g_state.rmin) * iter) / m_maxIter));
-                g = static_cast<uint8_t>(g_state.gmin + (((g_state.gmax - g_state.gmin) * iter) / m_maxIter));
-                b = static_cast<uint8_t>(g_state.bmin + (((g_state.bmax - g_state.bmin) * iter) / m_maxIter));
+                r = static_cast<BYTE>(g_state.rmin + (((g_state.rmax - g_state.rmin) * iter) / m_maxIter));
+                g = static_cast<BYTE>(g_state.gmin + (((g_state.gmax - g_state.gmin) * iter) / m_maxIter));
+                b = static_cast<BYTE>(g_state.bmin + (((g_state.bmax - g_state.bmin) * iter) / m_maxIter));
             }
 
-            int o = x * 3;
+            int o = x * 4;
             row[o + 0] = b;
             row[o + 1] = g;
             row[o + 2] = r;
+            row[o + 3] = 0;   // unused alpha
         }
     }
 
