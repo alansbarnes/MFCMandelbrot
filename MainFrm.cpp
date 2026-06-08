@@ -18,6 +18,11 @@ CMainFrame::CMainFrame() noexcept
 {
 }
 
+void CMainFrame::OnUpdateFrameTitle(BOOL bAddToTitle)
+{
+    SetWindowText(_T("Simple Mandelbrot Explorer"));
+}
+
 BOOL CMainFrame::PreCreateWindow(CREATESTRUCT& cs)
 {
     if (!CFrameWndEx::PreCreateWindow(cs))

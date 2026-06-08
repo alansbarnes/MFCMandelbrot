@@ -9,6 +9,7 @@ protected:
     DECLARE_DYNCREATE(CMainFrame)
 
 public:
+    virtual void OnUpdateFrameTitle(BOOL bAddToTitle) override;
     virtual BOOL PreCreateWindow(CREATESTRUCT& cs) override;
 
 protected:
