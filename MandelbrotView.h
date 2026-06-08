@@ -15,8 +15,9 @@ public:
 
 protected:
     // === Interaction state ===
-    bool   m_bDragging = false;   // right-button rectangle drag
-    double m_aspect = 1.0;     // view aspect ratio
+    bool   m_bDragging = false;   // active mouse drag
+    bool   m_bPanning = false;    // left-button pan drag
+    double m_aspect = 1.0;        // view aspect ratio
     CPoint m_ptAnchor;            // rectangle anchor point
     CRect  m_rcCapture;           // rectangle bounds
 
@@ -33,6 +34,7 @@ protected:
     afx_msg void OnRButtonUp(UINT nFlags, CPoint pt);
     afx_msg void OnMouseMove(UINT nFlags, CPoint pt);
     afx_msg void OnLButtonDown(UINT nFlags, CPoint pt);
+    afx_msg void OnLButtonUp(UINT nFlags, CPoint pt);
     afx_msg BOOL OnMouseWheel(UINT nFlags, short zDelta, CPoint pt);
 
     // === Commands ===
