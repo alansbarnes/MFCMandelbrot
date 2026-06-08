@@ -26,6 +26,7 @@ BEGIN_MESSAGE_MAP(CMandelbrotView, CView)
     ON_COMMAND(ID_ITER_DEC, &CMandelbrotView::OnIterDec)
 
     ON_WM_LBUTTONDOWN()
+    ON_WM_LBUTTONUP()
     ON_WM_RBUTTONDOWN()
     ON_WM_RBUTTONUP()
     ON_WM_MOUSEMOVE()
@@ -82,7 +83,7 @@ void CMandelbrotView::OnDraw(CDC* pDC)
     memDC.SelectObject(pOld);
 
     // Draw selection rectangle
-    if (m_bDragging)
+    if (m_bDragging && !m_bPanning)
     {
         CPen pen(PS_SOLID, 1, RGB(255, 255, 255));
         CPen* oldPen = pDC->SelectObject(&pen);
@@ -237,12 +238,17 @@ void CMandelbrotView::OnLButtonDown(UINT, CPoint pt)
     }
 
     // Otherwise begin panning
-    m_bDragging = false; // ensure rectangle is cleared
+    m_bDragging = true;
+    m_bPanning = true;
     m_rcCapture.SetRectEmpty();
 
     CMandelbrotDoc* pDoc = GetDocument();
     if (!pDoc)
+    {
+        m_bDragging = false;
+        m_bPanning = false;
         return;
+    }
 
     m_ptAnchor = pt;
     m_aspect = double(pDoc->m_width) / pDoc->m_height;
@@ -250,9 +256,22 @@ void CMandelbrotView::OnLButtonDown(UINT, CPoint pt)
     SetCapture();
 }
 
+void CMandelbrotView::OnLButtonUp(UINT, CPoint)
+{
+    if (!m_bDragging || !m_bPanning)
+        return;
+
+    m_bDragging = false;
+    m_bPanning = false;
+
+    if (::GetCapture() == m_hWnd)
+        ReleaseCapture();
+}
+
 void CMandelbrotView::OnRButtonDown(UINT, CPoint pt)
 {
     m_bDragging = true;
+    m_bPanning = false;
     m_ptAnchor = pt;
 
     CRect rc;
@@ -267,6 +286,24 @@ void CMandelbrotView::OnMouseMove(UINT, CPoint pt)
 {
     if (!m_bDragging)
         return;
+
+    if (m_bPanning)
+    {
+        CMandelbrotDoc* pDoc = GetDocument();
+        if (!pDoc || pDoc->m_width <= 1 || pDoc->m_height <= 1)
+            return;
+
+        double planeH = pDoc->m_scale;
+        double planeW = planeH * (double(pDoc->m_width) / pDoc->m_height);
+
+        pDoc->m_centerX -= (double(pt.x - m_ptAnchor.x) / (pDoc->m_width - 1)) * planeW;
+        pDoc->m_centerY += (double(pt.y - m_ptAnchor.y) / (pDoc->m_height - 1)) * planeH;
+        m_ptAnchor = pt;
+
+        pDoc->RenderMandelbrot();
+        Invalidate(FALSE);
+        return;
+    }
 
     int dx = pt.x - m_ptAnchor.x;
     int dy = pt.y - m_ptAnchor.y;
@@ -292,17 +329,18 @@ void CMandelbrotView::OnMouseMove(UINT, CPoint pt)
 
 void CMandelbrotView::OnRButtonUp(UINT, CPoint)
 {
-    if (!m_bDragging)
+    if (!m_bDragging || m_bPanning)
         return;
 
     m_bDragging = false;
-    ReleaseCapture();
+    if (::GetCapture() == m_hWnd)
+        ReleaseCapture();
 }
 
 BOOL CMandelbrotView::OnMouseWheel(UINT, short zDelta, CPoint pt)
 {
     CMandelbrotDoc* pDoc = GetDocument();
-    if (!pDoc)
+    if (!pDoc || pDoc->m_width <= 1 || pDoc->m_height <= 1)
         return FALSE;
 
     ScreenToClient(&pt);
@@ -324,8 +362,11 @@ BOOL CMandelbrotView::OnMouseWheel(UINT, short zDelta, CPoint pt)
     planeH = pDoc->m_scale;
     planeW = planeH * pixelAspect;
 
-    pDoc->m_centerX = cx - (double(pt.x) / (pDoc->m_width - 1)) * planeW;
-    pDoc->m_centerY = cy + (double(pt.y) / (pDoc->m_height - 1)) * planeH;
+    double fx = double(pt.x) / (pDoc->m_width - 1);
+    double fy = double(pt.y) / (pDoc->m_height - 1);
+
+    pDoc->m_centerX = cx + (0.5 - fx) * planeW;
+    pDoc->m_centerY = cy + (fy - 0.5) * planeH;
 
     pDoc->RenderMandelbrot();
     Invalidate();
