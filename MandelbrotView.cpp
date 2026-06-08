@@ -97,16 +97,16 @@ void CMandelbrotView::OnDraw(CDC* pDC)
 
     // Status overlay
     constexpr int D = std::numeric_limits<double>::max_digits10;
-    std::string info =
-        "Center: " + std::format("{:.{}g}", pDoc->m_centerX, D) +
-        " + " + std::format("{:.{}g}", pDoc->m_centerY, D) + "i" +
-        "  Height: " + std::format("{:.{}g}", pDoc->m_scale, D) + "i" +
-        "  Iter: " + std::to_string(pDoc->m_maxIter);
+    std::string info = std::format("Center: {:.{}g} + {:.{}g}i  Height: {:.{}g}i  Iter: {}",
+        pDoc->m_centerX, D,
+        pDoc->m_centerY, D,
+        pDoc->m_scale, D,
+        pDoc->m_maxIter);
 
     SetTextColor(*pDC, RGB(255, 255, 255));
     SetBkMode(*pDC, TRANSPARENT);
-    RECT r = { 8, 8, bm.bmWidth - 8, 40 };
-    DrawTextA(*pDC, info.c_str(), static_cast<int>(info.size()), &r,
+    RECT r = { 8, 32, bm.bmWidth - 8, 64 };
+    DrawTextA(pDC->GetSafeHdc(), info.c_str(), static_cast<int>(info.size()), &r,
         DT_LEFT | DT_SINGLELINE | DT_NOPREFIX);
 }
 
