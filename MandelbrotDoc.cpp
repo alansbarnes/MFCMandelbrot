@@ -4,6 +4,7 @@
 #include "MandelbrotDoc.h"
 
 #include <cmath>
+#include <string>
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -103,6 +104,21 @@ void CMandelbrotDoc::RenderMandelbrot()
 {
     if (!m_pBits || !m_bitmap.GetSafeHandle() || m_width <= 0 || m_height <= 0)
         return;
+
+    CWnd* pActive = CWnd::GetActiveWindow();
+    HDC hdc;
+    CRect rect;
+    
+    if (pActive)
+    {
+        hdc = ::GetDC(pActive->GetSafeHwnd());
+        pActive->GetClientRect(&rect);
+        SetBkMode(hdc, TRANSPARENT);
+        SetTextColor(hdc, RGB(255, 255, 255));
+        std::string text{ "Rendering ..." };
+        DrawTextA(hdc, text.c_str(), static_cast<int>(text.length()), &rect, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+        ::ReleaseDC(nullptr, hdc);
+    }
 
     const double pixelAspect = double(m_width) / m_height;
     const double planeH = m_scale;
