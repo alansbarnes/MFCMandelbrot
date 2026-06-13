@@ -98,6 +98,12 @@
 #define IDC_EDIT_GMAX               1007
 #define IDC_EDIT_BMIN               1008
 #define IDC_EDIT_BMAX               1009
+#define IDC_SPIN_RMIN               1010
+#define IDC_SPIN_RMAX               1011
+#define IDC_SPIN_GMIN               1012
+#define IDC_SPIN_GMAX               1013
+#define IDC_SPIN_BMIN               1014
+#define IDC_SPIN_BMAX               1015
 
 // Menu commands
 #define IDM_PROPERTIES              32771
@@ -113,7 +119,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE    131
 #define _APS_NEXT_COMMAND_VALUE     32777
-#define _APS_NEXT_CONTROL_VALUE     1010
+#define _APS_NEXT_CONTROL_VALUE     1016
 #define _APS_NEXT_SYMED_VALUE       101
 #endif
 #endif
