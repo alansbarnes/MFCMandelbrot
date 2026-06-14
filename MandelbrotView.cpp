@@ -145,6 +145,12 @@ void CMandelbrotView::OnProperties()
         pDoc->m_centerX = g_props.centerReal;
         pDoc->m_centerY = g_props.centerImag;
         pDoc->m_scale = g_props.height;
+        g_state.rmin = g_props.rmin;
+        g_state.rmax = g_props.rmax;
+        g_state.gmin = g_props.gmin;
+        g_state.gmax = g_props.gmax;
+        g_state.bmin = g_props.bmin;
+        g_state.bmax = g_props.bmax;
 
         pDoc->RenderMandelbrot();
         Invalidate();
