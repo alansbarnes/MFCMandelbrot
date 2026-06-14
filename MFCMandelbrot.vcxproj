@@ -185,7 +185,6 @@
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="AppState.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="MainFrm.h" />
     <ClInclude Include="MandelbrotDoc.h" />
@@ -198,7 +197,6 @@
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="AppState.cpp" />
     <ClCompile Include="MainFrm.cpp" />
     <ClCompile Include="MandelbrotDoc.cpp" />
     <ClCompile Include="MandelbrotView.cpp" />

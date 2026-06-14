@@ -1,7 +1,5 @@
 #pragma once
 
-#include "AppState.h"
-
 class CMandelbrotDoc : public CDocument
 {
 protected:
@@ -26,6 +24,13 @@ public:
     double  m_centerY;
     double  m_scale;
     int     m_maxIter;
+    
+    int     m_rmin;
+    int     m_rmax;
+    int     m_gmin;
+    int     m_gmax;
+    int     m_bmin;
+    int     m_bmax;
 
 public:
     virtual BOOL OnNewDocument() override;

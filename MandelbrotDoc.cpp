@@ -26,6 +26,13 @@ CMandelbrotDoc::CMandelbrotDoc() noexcept
     , m_centerY(0.0)
     , m_scale(initialHeight)
     , m_maxIter(50)
+
+    , m_rmin(100)
+    , m_rmax(255)
+    , m_gmin(0)
+    , m_gmax(255)
+    , m_bmin(0)
+    , m_bmax(0)
 {
 }
 
@@ -158,9 +165,9 @@ void CMandelbrotDoc::RenderMandelbrot()
             }
             else
             {
-                r = static_cast<BYTE>(g_state.rmin + (((g_state.rmax - g_state.rmin) * iter) / m_maxIter));
-                g = static_cast<BYTE>(g_state.gmin + (((g_state.gmax - g_state.gmin) * iter) / m_maxIter));
-                b = static_cast<BYTE>(g_state.bmin + (((g_state.bmax - g_state.bmin) * iter) / m_maxIter));
+                r = static_cast<BYTE>(m_rmin + (((m_rmax - m_rmin) * iter) / m_maxIter));
+                g = static_cast<BYTE>(m_gmin + (((m_gmax - m_gmin) * iter) / m_maxIter));
+                b = static_cast<BYTE>(m_bmin + (((m_bmax - m_bmin) * iter) / m_maxIter));
             }
 
             int o = x * 4;
