@@ -39,17 +39,19 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
     if (!m_wndMenuBar.Create(this))
         return -1;
 
-    // Load menu resource
     CMenu menu;
-    menu.LoadMenu(IDR_MAINFRAME);
+    if (!menu.LoadMenu(IDR_MAINFRAME))
+        return -1;
 
-    // Attach to menu bar (correct signature)
     m_wndMenuBar.CreateFromMenu(menu.GetSafeHmenu());
 
     if (!m_wndStatusBar.Create(this))
         return -1;
 
     EnableDocking(CBRS_ALIGN_ANY);
+    m_wndMenuBar.EnableDocking(CBRS_ALIGN_TOP);
+    DockPane(&m_wndMenuBar);
+    RecalcLayout();
 
     return 0;
 }
