@@ -73,12 +73,16 @@ void CMandelbrotView::OnDraw(CDC* pDC)
 
     BITMAP bm = {};
     pBmp->GetBitmap(&bm);
+    CRect rcClient;
+    GetClientRect(&rcClient);
+    const int drawW = min(rcClient.Width(), bm.bmWidth);
+    const int drawH = min(rcClient.Height(), bm.bmHeight);
 
     CDC memDC;
     memDC.CreateCompatibleDC(pDC);
     CBitmap* pOld = memDC.SelectObject(pBmp);
 
-    pDC->BitBlt(0, 0, bm.bmWidth, bm.bmHeight, &memDC, 0, 0, SRCCOPY);
+    pDC->BitBlt(0, 0, drawW, drawH, &memDC, 0, 0, SRCCOPY);
 
     memDC.SelectObject(pOld);
 
