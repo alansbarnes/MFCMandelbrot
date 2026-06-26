@@ -109,7 +109,7 @@ void CMandelbrotView::OnDraw(CDC* pDC)
 
     SetTextColor(*pDC, RGB(255, 255, 255));
     SetBkMode(*pDC, TRANSPARENT);
-    RECT r = { 8, 32, bm.bmWidth - 8, 64 };
+    RECT r = { 8, 8, bm.bmWidth - 8, 24 };
     DrawTextA(pDC->GetSafeHdc(), info.c_str(), static_cast<int>(info.size()), &r,
         DT_LEFT | DT_SINGLELINE | DT_NOPREFIX);
 }
