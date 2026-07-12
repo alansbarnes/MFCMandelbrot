@@ -5,7 +5,7 @@ inline constexpr double initialHeight = 4.0;
 struct Properties
 {
     int maxIter = 50;
-    double centerReal = -0.75;
+    double centerReal = 0.0;
     double centerImag = 0.0;
     double height = initialHeight;
 

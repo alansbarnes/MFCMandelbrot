@@ -22,7 +22,7 @@ CMandelbrotDoc::CMandelbrotDoc() noexcept
     , m_pBits(nullptr)
     , m_width(1)
     , m_height(1)
-    , m_centerX(-0.75)
+    , m_centerX(0.0)
     , m_centerY(0.0)
     , m_scale(initialHeight)
     , m_maxIter(50)

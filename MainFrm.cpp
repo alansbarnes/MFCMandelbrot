@@ -28,6 +28,9 @@ BOOL CMainFrame::PreCreateWindow(CREATESTRUCT& cs)
     if (!CFrameWndEx::PreCreateWindow(cs))
         return FALSE;
 
+    int height = GetSystemMetrics(SM_CYSCREEN);
+    cs.cx = cs.cy = height * 7 / 8;
+
     return TRUE;
 }
 
@@ -49,7 +52,6 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
         return -1;
 
     EnableDocking(CBRS_ALIGN_ANY);
-    m_wndMenuBar.EnableDocking(CBRS_ALIGN_TOP);
     DockPane(&m_wndMenuBar);
     RecalcLayout();
 

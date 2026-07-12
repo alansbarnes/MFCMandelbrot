@@ -169,7 +169,7 @@ void CMandelbrotView::OnViewReset()
     if (!pDoc)
         return;
 
-    pDoc->m_centerX = -0.5;
+    pDoc->m_centerX = 0.0;
     pDoc->m_centerY = 0.0;
     pDoc->m_scale = 4.0;
     pDoc->m_maxIter = 50;
