@@ -87,7 +87,7 @@ void CMandelbrotView::OnDraw(CDC* pDC)
     memDC.SelectObject(pOld);
 
     // Draw selection rectangle
-    if (m_bDragging && !m_bPanning)
+    if (!m_rcCapture.IsRectEmpty())
     {
         CPen pen(PS_SOLID, 1, RGB(255, 255, 255));
         CPen* oldPen = pDC->SelectObject(&pen);
@@ -243,6 +243,14 @@ void CMandelbrotView::OnLButtonDown(UINT, CPoint pt)
         m_rcCapture.SetRectEmpty();
 
         pDoc->RenderMandelbrot();
+        Invalidate();
+        return;
+    }
+
+    // If a capture rectangle is selected and click is outside → clear it
+    if (!m_rcCapture.IsRectEmpty() && !m_rcCapture.PtInRect(pt))
+    {
+        m_rcCapture.SetRectEmpty();
         Invalidate();
         return;
     }
