@@ -111,14 +111,15 @@
 #define ID_ITER_INC                 32773
 #define ID_ITER_DEC                 32774
 #define ID_EXIT                     32775
-#define ID_ABOUT                   32776
+#define ID_ABOUT                    32776
+#define ID_VIEW_PALETTE_SMOOTHING   32777
 
 // Next default values for new objects
 //
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE    131
-#define _APS_NEXT_COMMAND_VALUE     32777
+#define _APS_NEXT_COMMAND_VALUE     32778
 #define _APS_NEXT_CONTROL_VALUE     1016
 #define _APS_NEXT_SYMED_VALUE       101
 #endif

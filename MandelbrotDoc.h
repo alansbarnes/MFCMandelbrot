@@ -32,6 +32,8 @@ public:
     int     m_bmin;
     int     m_bmax;
 
+    bool    m_smoothPalette;
+
 public:
     virtual BOOL OnNewDocument() override;
     virtual void Serialize(CArchive& ar) override;
