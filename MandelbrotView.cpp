@@ -57,7 +57,7 @@ void CMandelbrotView::OnInitialUpdate()
     pDoc->ResizeBitmap(rc.Width(), rc.Height());
     pDoc->RenderMandelbrot();
 
-    Invalidate();
+    Invalidate(FALSE);
     UpdateWindow();
 }
 
@@ -127,7 +127,7 @@ void CMandelbrotView::OnSize(UINT nType, int cx, int cy)
 
     pDoc->ResizeBitmap(cx, cy);
     pDoc->RenderMandelbrot();
-    Invalidate();
+    Invalidate(FALSE);
 }
 
 void CMandelbrotView::OnProperties()
@@ -157,7 +157,7 @@ void CMandelbrotView::OnProperties()
         pDoc->m_bmax = g_props.bmax;
 
         pDoc->RenderMandelbrot();
-        Invalidate();
+        Invalidate(FALSE);
     }
 }
 
@@ -175,7 +175,7 @@ void CMandelbrotView::OnViewReset()
     pDoc->m_maxIter = 50;
 
     pDoc->RenderMandelbrot();
-    Invalidate();
+    Invalidate(FALSE);
 }
 
 void CMandelbrotView::OnIterInc()
@@ -186,7 +186,7 @@ void CMandelbrotView::OnIterInc()
 
     pDoc->m_maxIter += 50;
     pDoc->RenderMandelbrot();
-    Invalidate();
+    Invalidate(FALSE);
 }
 
 void CMandelbrotView::OnIterDec()
@@ -199,7 +199,7 @@ void CMandelbrotView::OnIterDec()
         pDoc->m_maxIter -= 50;
 
     pDoc->RenderMandelbrot();
-    Invalidate();
+    Invalidate(FALSE);
 }
 
 void CMandelbrotView::OnLButtonDown(UINT, CPoint pt)
@@ -243,7 +243,7 @@ void CMandelbrotView::OnLButtonDown(UINT, CPoint pt)
         m_rcCapture.SetRectEmpty();
 
         pDoc->RenderMandelbrot();
-        Invalidate();
+        Invalidate(FALSE);
         return;
     }
 
@@ -251,7 +251,7 @@ void CMandelbrotView::OnLButtonDown(UINT, CPoint pt)
     if (!m_rcCapture.IsRectEmpty() && !m_rcCapture.PtInRect(pt))
     {
         m_rcCapture.SetRectEmpty();
-        Invalidate();
+        Invalidate(FALSE);
         return;
     }
 
@@ -387,7 +387,7 @@ BOOL CMandelbrotView::OnMouseWheel(UINT, short zDelta, CPoint pt)
     pDoc->m_centerY = cy + (fy - 0.5) * planeH;
 
     pDoc->RenderMandelbrot();
-    Invalidate();
+    Invalidate(FALSE);
 
     return TRUE;
 }
