@@ -24,6 +24,8 @@ BEGIN_MESSAGE_MAP(CMandelbrotView, CView)
     ON_COMMAND(ID_VIEW_RESET, &CMandelbrotView::OnViewReset)
     ON_COMMAND(ID_ITER_INC, &CMandelbrotView::OnIterInc)
     ON_COMMAND(ID_ITER_DEC, &CMandelbrotView::OnIterDec)
+    ON_COMMAND(ID_VIEW_PALETTE_SMOOTHING, &CMandelbrotView::OnViewPaletteSmoothing)
+    ON_UPDATE_COMMAND_UI(ID_VIEW_PALETTE_SMOOTHING, &CMandelbrotView::OnUpdateViewPaletteSmoothing)
 
     ON_WM_LBUTTONDOWN()
     ON_WM_LBUTTONUP()
@@ -200,6 +202,23 @@ void CMandelbrotView::OnIterDec()
 
     pDoc->RenderMandelbrot();
     Invalidate(FALSE);
+}
+
+void CMandelbrotView::OnViewPaletteSmoothing()
+{
+    CMandelbrotDoc* pDoc = GetDocument();
+    if (!pDoc)
+        return;
+
+    pDoc->m_smoothPalette = !pDoc->m_smoothPalette;
+    pDoc->RenderMandelbrot();
+    Invalidate(FALSE);
+}
+
+void CMandelbrotView::OnUpdateViewPaletteSmoothing(CCmdUI* pCmdUI)
+{
+    CMandelbrotDoc* pDoc = GetDocument();
+    pCmdUI->SetCheck(pDoc && pDoc->m_smoothPalette ? 1 : 0);
 }
 
 void CMandelbrotView::OnLButtonDown(UINT, CPoint pt)
