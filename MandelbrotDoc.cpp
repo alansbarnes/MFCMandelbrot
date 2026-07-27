@@ -4,6 +4,7 @@
 #include "MandelbrotDoc.h"
 
 #include <cmath>
+#include <algorithm>
 #include <string>
 
 #ifdef _DEBUG
@@ -33,6 +34,7 @@ CMandelbrotDoc::CMandelbrotDoc() noexcept
     , m_gmax(255)
     , m_bmin(0)
     , m_bmax(0)
+    , m_smoothPalette(false)
 {
 }
 
@@ -162,6 +164,18 @@ void CMandelbrotDoc::RenderMandelbrot()
             if (iter == m_maxIter)
             {
                 r = g = b = 0;
+            }
+            else if (m_smoothPalette)
+            {
+                // Smooth (continuous) colouring: avoid integer banding.
+                // At this point iter < m_maxIter, meaning the escape condition
+                // |z|^2 > 4 was met, so zMod2 > 4 and log(zMod2)*0.5 > log(2) > 0.
+                double zMod2 = zx * zx + zy * zy;
+                double smooth = static_cast<double>(iter) + 1.0 - std::log2(std::log(zMod2) * 0.5);
+                smooth = std::clamp(smooth / static_cast<double>(m_maxIter), 0.0, 1.0);
+                r = static_cast<BYTE>(m_rmin + (m_rmax - m_rmin) * smooth);
+                g = static_cast<BYTE>(m_gmin + (m_gmax - m_gmin) * smooth);
+                b = static_cast<BYTE>(m_bmin + (m_bmax - m_bmin) * smooth);
             }
             else
             {
