@@ -44,6 +44,8 @@ protected:
     afx_msg void OnIterDec();
     afx_msg void OnViewPaletteSmoothing();
     afx_msg void OnUpdateViewPaletteSmoothing(CCmdUI* pCmdUI);
+    afx_msg void OnViewBack();
+    afx_msg void OnUpdateViewBack(CCmdUI* pCmdUI);
 
     // === Resize ===
     afx_msg void OnSize(UINT nType, int cx, int cy);

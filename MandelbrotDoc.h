@@ -1,5 +1,14 @@
 #pragma once
 
+#include <stack>
+
+struct ViewState
+{
+    double centerX;
+    double centerY;
+    double scale;
+};
+
 class CMandelbrotDoc : public CDocument
 {
 protected:
@@ -34,6 +43,8 @@ public:
 
     bool    m_smoothPalette;
 
+    std::stack<ViewState> m_viewHistory;
+
 public:
     virtual BOOL OnNewDocument() override;
     virtual void Serialize(CArchive& ar) override;
@@ -41,6 +52,7 @@ public:
     void ResizeBitmap(int width, int height);
     void ResizeBitmapForDisplay(HWND hWnd, int clientWidth, int clientHeight);
     void RenderMandelbrot();
+    void PushViewState();
 
     DECLARE_MESSAGE_MAP()
 

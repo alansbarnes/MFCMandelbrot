@@ -26,6 +26,8 @@ BEGIN_MESSAGE_MAP(CMandelbrotView, CView)
     ON_COMMAND(ID_ITER_DEC, &CMandelbrotView::OnIterDec)
     ON_COMMAND(ID_VIEW_PALETTE_SMOOTHING, &CMandelbrotView::OnViewPaletteSmoothing)
     ON_UPDATE_COMMAND_UI(ID_VIEW_PALETTE_SMOOTHING, &CMandelbrotView::OnUpdateViewPaletteSmoothing)
+    ON_COMMAND(ID_VIEW_BACK, &CMandelbrotView::OnViewBack)
+    ON_UPDATE_COMMAND_UI(ID_VIEW_BACK, &CMandelbrotView::OnUpdateViewBack)
 
     ON_WM_LBUTTONDOWN()
     ON_WM_LBUTTONUP()
@@ -176,6 +178,9 @@ void CMandelbrotView::OnViewReset()
     pDoc->m_scale = 4.0;
     pDoc->m_maxIter = 50;
 
+    while (!pDoc->m_viewHistory.empty())
+        pDoc->m_viewHistory.pop();
+
     pDoc->RenderMandelbrot();
     Invalidate(FALSE);
 }
@@ -255,10 +260,10 @@ void CMandelbrotView::OnLButtonDown(UINT, CPoint pt)
         double y1 = mapY(m_rcCapture.top);
         double y2 = mapY(m_rcCapture.bottom);
 
+        pDoc->PushViewState();
         pDoc->m_centerX = (x1 + x2) / 2.0;
         pDoc->m_centerY = (y1 + y2) / 2.0;
         pDoc->m_scale = fabs(y2 - y1);
-
         m_rcCapture.SetRectEmpty();
 
         pDoc->RenderMandelbrot();
@@ -290,6 +295,7 @@ void CMandelbrotView::OnLButtonDown(UINT, CPoint pt)
     m_ptAnchor = pt;
     m_aspect = double(pDoc->m_width) / pDoc->m_height;
 
+    pDoc->PushViewState();
     SetCapture();
 }
 
@@ -394,6 +400,7 @@ BOOL CMandelbrotView::OnMouseWheel(UINT, short zDelta, CPoint pt)
     double cy = top - (double(pt.y) / (pDoc->m_height - 1)) * planeH;
 
     double factor = (zDelta > 0) ? 0.8 : 1.25;
+    pDoc->PushViewState();
     pDoc->m_scale *= factor;
 
     planeH = pDoc->m_scale;
@@ -409,4 +416,26 @@ BOOL CMandelbrotView::OnMouseWheel(UINT, short zDelta, CPoint pt)
     Invalidate(FALSE);
 
     return TRUE;
+}
+
+void CMandelbrotView::OnViewBack()
+{
+    CMandelbrotDoc* pDoc = GetDocument();
+    if (!pDoc || pDoc->m_viewHistory.empty())
+        return;
+
+    const ViewState& vs = pDoc->m_viewHistory.top();
+    pDoc->m_centerX = vs.centerX;
+    pDoc->m_centerY = vs.centerY;
+    pDoc->m_scale   = vs.scale;
+    pDoc->m_viewHistory.pop();
+
+    pDoc->RenderMandelbrot();
+    Invalidate(FALSE);
+}
+
+void CMandelbrotView::OnUpdateViewBack(CCmdUI* pCmdUI)
+{
+    CMandelbrotDoc* pDoc = GetDocument();
+    pCmdUI->Enable(pDoc && !pDoc->m_viewHistory.empty() ? TRUE : FALSE);
 }

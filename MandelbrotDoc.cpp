@@ -195,8 +195,12 @@ void CMandelbrotDoc::RenderMandelbrot()
     SetModifiedFlag(FALSE);
 }
 
-bool CMandelbrotDoc::HasBitmap() const
+void CMandelbrotDoc::PushViewState()
 {
+    m_viewHistory.push({ m_centerX, m_centerY, m_scale });
+}
+
+bool CMandelbrotDoc::HasBitmap() const{
     return m_hasBitmap;
 }
 
