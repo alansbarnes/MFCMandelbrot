@@ -115,18 +115,23 @@ void CMandelbrotDoc::RenderMandelbrot()
         return;
 
     CWnd* pActive = CWnd::GetActiveWindow();
-    HDC hdc;
     CRect rect;
     
     if (pActive)
     {
-        hdc = ::GetDC(pActive->GetSafeHwnd());
-        pActive->GetClientRect(&rect);
-        SetBkMode(hdc, TRANSPARENT);
-        SetTextColor(hdc, RGB(255, 255, 255));
-        std::string text{ "Rendering ..." };
-        DrawTextA(hdc, text.c_str(), static_cast<int>(text.length()), &rect, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
-        ::ReleaseDC(nullptr, hdc);
+        const HWND activeHwnd = pActive->GetSafeHwnd();
+        if (activeHwnd != nullptr)
+        {
+            if (HDC hdc = ::GetDC(activeHwnd))
+            {
+                pActive->GetClientRect(&rect);
+                SetBkMode(hdc, TRANSPARENT);
+                SetTextColor(hdc, RGB(255, 255, 255));
+                std::string text{ "Rendering ..." };
+                DrawTextA(hdc, text.c_str(), static_cast<int>(text.length()), &rect, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+                ::ReleaseDC(activeHwnd, hdc);
+            }
+        }
     }
 
     const double pixelAspect = double(m_width) / m_height;
