@@ -200,7 +200,8 @@ void CMandelbrotDoc::PushViewState()
     m_viewHistory.push({ m_centerX, m_centerY, m_scale });
 }
 
-bool CMandelbrotDoc::HasBitmap() const{
+bool CMandelbrotDoc::HasBitmap() const
+{
     return m_hasBitmap;
 }
 

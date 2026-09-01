@@ -17,6 +17,7 @@ protected:
     // === Interaction state ===
     bool   m_bDragging = false;   // active mouse drag
     bool   m_bPanning = false;    // left-button pan drag
+    bool   m_bPanPushed = false;  // view state pushed for current pan
     double m_aspect = 1.0;        // view aspect ratio
     CPoint m_ptAnchor;            // rectangle anchor point
     CRect  m_rcCapture;           // rectangle bounds

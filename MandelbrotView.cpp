@@ -282,6 +282,7 @@ void CMandelbrotView::OnLButtonDown(UINT, CPoint pt)
     // Otherwise begin panning
     m_bDragging = true;
     m_bPanning = true;
+    m_bPanPushed = false;
     m_rcCapture.SetRectEmpty();
 
     CMandelbrotDoc* pDoc = GetDocument();
@@ -295,7 +296,6 @@ void CMandelbrotView::OnLButtonDown(UINT, CPoint pt)
     m_ptAnchor = pt;
     m_aspect = double(pDoc->m_width) / pDoc->m_height;
 
-    pDoc->PushViewState();
     SetCapture();
 }
 
@@ -338,6 +338,12 @@ void CMandelbrotView::OnMouseMove(UINT, CPoint pt)
 
         double planeH = pDoc->m_scale;
         double planeW = planeH * (double(pDoc->m_width) / pDoc->m_height);
+
+        if (!m_bPanPushed)
+        {
+            pDoc->PushViewState();
+            m_bPanPushed = true;
+        }
 
         pDoc->m_centerX -= (double(pt.x - m_ptAnchor.x) / (pDoc->m_width - 1)) * planeW;
         pDoc->m_centerY += (double(pt.y - m_ptAnchor.y) / (pDoc->m_height - 1)) * planeH;
