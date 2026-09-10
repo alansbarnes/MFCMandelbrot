@@ -18,6 +18,31 @@ END_MESSAGE_MAP()
 
 constexpr double initialHeight = 4.0;
 
+namespace
+{
+    constexpr int kBayer4x4[4][4] =
+    {
+        { 0,  8,  2, 10 },
+        { 12, 4, 14,  6 },
+        { 3, 11,  1,  9 },
+        { 15, 7, 13,  5 }
+    };
+
+    constexpr double kDitherStrength = 1.0;
+
+    double OrderedDitherOffset(int x, int y)
+    {
+        const int threshold = kBayer4x4[y & 3][x & 3];
+        return (((static_cast<double>(threshold) + 0.5) / 16.0) - 0.5) * kDitherStrength;
+    }
+
+    BYTE QuantizeChannel(double value)
+    {
+        value = std::clamp(value, 0.0, 255.0);
+        return static_cast<BYTE>(std::lround(value));
+    }
+}
+
 CMandelbrotDoc::CMandelbrotDoc() noexcept
     : m_bitmap()
     , m_pBits(nullptr)
@@ -159,11 +184,14 @@ void CMandelbrotDoc::RenderMandelbrot()
                 ++iter;
             }
 
-            BYTE r, g, b;
+            double r = 0.0;
+            double g = 0.0;
+            double b = 0.0;
+            const bool escaped = (iter != m_maxIter);
 
-            if (iter == m_maxIter)
+            if (!escaped)
             {
-                r = g = b = 0;
+                r = g = b = 0.0;
             }
             else if (m_smoothPalette)
             {
@@ -173,21 +201,30 @@ void CMandelbrotDoc::RenderMandelbrot()
                 double zMod2 = zx * zx + zy * zy;
                 double smooth = static_cast<double>(iter) + 1.0 - std::log2(std::log(zMod2) * 0.5);
                 smooth = std::clamp(smooth / static_cast<double>(m_maxIter), 0.0, 1.0);
-                r = static_cast<BYTE>(m_rmin + (m_rmax - m_rmin) * smooth);
-                g = static_cast<BYTE>(m_gmin + (m_gmax - m_gmin) * smooth);
-                b = static_cast<BYTE>(m_bmin + (m_bmax - m_bmin) * smooth);
+                r = static_cast<double>(m_rmin) + static_cast<double>(m_rmax - m_rmin) * smooth;
+                g = static_cast<double>(m_gmin) + static_cast<double>(m_gmax - m_gmin) * smooth;
+                b = static_cast<double>(m_bmin) + static_cast<double>(m_bmax - m_bmin) * smooth;
             }
             else
             {
-                r = static_cast<BYTE>(m_rmin + (((m_rmax - m_rmin) * iter) / m_maxIter));
-                g = static_cast<BYTE>(m_gmin + (((m_gmax - m_gmin) * iter) / m_maxIter));
-                b = static_cast<BYTE>(m_bmin + (((m_bmax - m_bmin) * iter) / m_maxIter));
+                const double t = static_cast<double>(iter) / static_cast<double>(m_maxIter);
+                r = static_cast<double>(m_rmin) + static_cast<double>(m_rmax - m_rmin) * t;
+                g = static_cast<double>(m_gmin) + static_cast<double>(m_gmax - m_gmin) * t;
+                b = static_cast<double>(m_bmin) + static_cast<double>(m_bmax - m_bmin) * t;
+            }
+
+            if (escaped)
+            {
+                const double dither = OrderedDitherOffset(x, y);
+                r += dither;
+                g += dither;
+                b += dither;
             }
 
             int o = x * 4;
-            row[o + 0] = b;
-            row[o + 1] = g;
-            row[o + 2] = r;
+            row[o + 0] = QuantizeChannel(b);
+            row[o + 1] = QuantizeChannel(g);
+            row[o + 2] = QuantizeChannel(r);
             row[o + 3] = 0;   // unused alpha
         }
     }
