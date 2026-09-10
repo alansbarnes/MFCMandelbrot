@@ -28,12 +28,12 @@ namespace
         { 15, 7, 13,  5 }
     };
 
-    constexpr double kDitherStrength = 1.0;
+    constexpr double kDitherStrength = 1.1;
 
     double OrderedDitherOffset(int x, int y)
     {
         const int threshold = kBayer4x4[y & 3][x & 3];
-        return ((static_cast<double>(threshold) / 15.0) - 0.5) * kDitherStrength;
+        return (((static_cast<double>(threshold) + 0.5) / 16.0) - 0.5) * kDitherStrength;
     }
 
     BYTE QuantizeChannel(double value)
