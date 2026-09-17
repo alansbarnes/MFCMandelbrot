@@ -6,7 +6,7 @@
 - Keep one running set of notes with: what each service does, when to use it, key tradeoffs, and any cost or security concerns.
 - Use the GCP free tier where possible and set billing alerts on day 1.
 
-## Week 1: Cloud foundations (Days 1-5)
+## Days 1-5: Cloud foundations
 
 ### Day 1: Cloud basics and account setup
 **Learn**
@@ -81,7 +81,7 @@
 **Output**
 - A one-page summary of core GCP services and what each is for
 
-## Week 2: Identity, networking, and security (Days 6-10)
+## Days 6-10: Identity, networking, and security
 
 ### Day 6: GCP resource hierarchy and IAM basics
 **Learn**
@@ -145,7 +145,7 @@
 **Checkpoint**
 - You should be able to sketch a secure baseline GCP environment and explain least privilege
 
-## Week 3: Compute and application hosting (Days 11-15)
+## Days 11-15: Compute and application hosting
 
 ### Day 11: Compute Engine fundamentals
 **Learn**
@@ -194,7 +194,7 @@
 - A compute selection guide for beginner workloads
 - One simple deployed service in Cloud Run or a written walkthrough if you cannot deploy
 
-## Week 4: Data and storage architecture (Days 16-20)
+## Days 16-20: Data and storage architecture
 
 ### Day 16: Storage fundamentals
 **Learn**
@@ -240,7 +240,7 @@
 **Output**
 - A data service selection matrix for Cloud Storage, Persistent Disk, Filestore, Cloud SQL, Firestore, Spanner, BigQuery, and Memorystore
 
-## Week 5: Architecture patterns and operations (Days 21-25)
+## Days 21-25: Architecture patterns and operations
 
 ### Day 21: 3-tier web architecture
 **Learn**
@@ -289,7 +289,7 @@
 **Output**
 - A short tradeoff summary for cost, scale, reliability, and operational overhead
 
-## Week 6: Mini architecture portfolio (Days 26-30)
+## Days 26-30: Mini architecture portfolio
 
 ### Day 26: Static website architecture
 **Build or design**
@@ -351,7 +351,7 @@
 - Google Cloud documentation product overviews and architecture center
 - Google Cloud Skills Boost free labs and learning paths
 - Google Cloud YouTube architecture and getting-started content
-- Qwiklabs-style introductory labs that focus on Cloud Run, IAM, VPC, and BigQuery
+- Google Cloud Skills Boost hands-on labs for Cloud Run, IAM, VPC, and BigQuery
 
 ## What you should know by the end
 By day 30, you should be able to:
