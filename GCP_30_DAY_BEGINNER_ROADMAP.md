@@ -138,9 +138,9 @@
 - Console and documentation checks for each chosen service
 
 ### Daily checklist
-- [ ] Day 26: Design a static website architecture using Cloud Storage, CDN, DNS, and optional HTTPS load balancing.
+- [ ] Day 26: Design a static website architecture using Cloud Storage, Cloud CDN, Cloud DNS, and optional HTTPS load balancing.
 - [ ] Day 27: Design a web app architecture using Cloud Run, Cloud SQL, load balancing, and Secret Manager.
-- [ ] Day 28: Design an event-driven workflow using Pub/Sub plus Cloud Run or Cloud Functions and define retry and monitoring behavior.
+- [ ] Day 28: Design an event-driven workflow using Pub/Sub plus Cloud Run and define retry and monitoring behavior.
 - [ ] Day 29: Compare your three designs with Google reference architectures and note what you would change for scale, security, and cost.
 - [ ] Day 30: Produce your final package: service summary, secure baseline design, compute guide, data guide, and three architecture diagrams with tradeoff notes.
 
