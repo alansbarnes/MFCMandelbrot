@@ -5,6 +5,7 @@
 - Spend about 40% of your time on LinkedIn Learning, 40% on GCP hands-on work, and 20% on Google Cloud documentation and reference architectures.
 - Use LinkedIn Learning for structured explanations, vocabulary, and architecture patterns.
 - Use Google Cloud directly for product discovery, console navigation, labs, and service-specific practice.
+- If a LinkedIn Learning video shows older console steps, follow the current Google Cloud documentation for the exact UI flow.
 - Keep one running set of notes with: what each service does, when to use it, key tradeoffs, and any cost or security concerns.
 - Use the GCP free tier where possible and set billing alerts on day 1.
 
@@ -138,7 +139,7 @@
 - Console and documentation checks for each chosen service
 
 ### Daily checklist
-- [ ] Day 26: Design a static website architecture with Cloud Storage as the origin, an external Application Load Balancer with Cloud CDN, and Cloud DNS.
+- [ ] Day 26: Design a static website architecture that maps a domain with Cloud DNS to an external Application Load Balancer using Cloud CDN with Cloud Storage as the origin.
 - [ ] Day 27: Design a web app architecture using Cloud Run, Cloud SQL, load balancing, and Secret Manager.
 - [ ] Day 28: Design an event-driven workflow using Pub/Sub plus Cloud Run and define retry and monitoring behavior.
 - [ ] Day 29: Compare your three designs with Google reference architectures and note what you would change for scale, security, and cost.
